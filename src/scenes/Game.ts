@@ -1,34 +1,51 @@
 import Phaser from 'phaser'
+import { InputController } from '~/lib/InputController'
+import { Player } from '~/lib/Player'
 
 export default class Game extends Phaser.Scene {
+  public playerTeam: Player[] = []
+  public enemyTeam: Player[] = []
+  public inputController!: InputController
+
   constructor() {
     super('game')
   }
-  preload() {
-    this.load.setBaseURL('http://labs.phaser.io')
-
-    this.load.image('sky', 'assets/skies/space3.png')
-    this.load.image('logo', 'assets/sprites/phaser3-logo.png')
-    this.load.image('red', 'assets/particles/red.png')
-  }
 
   create() {
-    this.add.image(400, 300, 'sky')
+    this.createField()
+    this.createPlayers()
+    this.createBall()
+    this.initializeInputController()
+  }
 
-    const particles = this.add.particles('red')
+  createField() {
+    const bg = this.add.image(this.scale.width / 2, this.scale.height / 2, 'field')
+    this.cameras.main.setBackgroundColor('#93c47d')
+  }
 
-    const emitter = particles.createEmitter({
-      speed: 100,
-      scale: { start: 1, end: 0 },
-      blendMode: 'ADD',
-    })
+  initializeInputController() {
+    this.inputController = new InputController(this)
+  }
 
-    const logo = this.physics.add.image(400, 100, 'logo')
+  createBall() {}
 
-    logo.setVelocity(100, 200)
-    logo.setBounce(1, 1)
-    logo.setCollideWorldBounds(true)
+  createPlayers() {
+    const spacing = 50
+    const numPlayersPerTeam = 3
+    let playerYPos = this.scale.height / 2
+    const playerXPos = 20
+    for (let i = 0; i < numPlayersPerTeam; i++) {
+      const player = new Player({ x: playerXPos, y: playerYPos }, 0x0000ff, this)
+      this.playerTeam.push(player)
+      playerYPos += spacing
+    }
 
-    emitter.startFollow(logo)
+    let enemyYPos = this.scale.height / 2
+    const enemyXPos = this.scale.width - 20
+    for (let i = 0; i < numPlayersPerTeam; i++) {
+      const player = new Player({ x: enemyXPos, y: enemyYPos }, 0xff0000, this)
+      this.enemyTeam.push(player)
+      enemyYPos += spacing
+    }
   }
 }
