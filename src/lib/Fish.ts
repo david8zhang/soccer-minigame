@@ -1,22 +1,36 @@
 import Game, { Side } from '~/scenes/Game'
 import { Ball, BallState } from './Ball'
 
-export class Player {
+export interface FishConfig {
+  position: {
+    x: number
+    y: number
+  }
+  side: Side
+  flipX?: boolean
+  texture: string
+}
+
+export class Fish {
   private scene: Game
   public sprite: Phaser.Physics.Arcade.Sprite
   public ballCollider: Phaser.Physics.Arcade.Collider
   public ball?: Ball
   public side: Side
 
-  constructor(position: { x: number; y: number }, side: Side, scene: Game) {
+  constructor(fishConfig: FishConfig, scene: Game) {
+    const { position, side, texture, flipX } = fishConfig
     this.scene = scene
     const { x, y } = position
     this.side = side
 
     // Configure sprite
-    this.sprite = this.scene.physics.add.sprite(x, y, 'player').setScale(0.1).setDepth(100)
+    this.sprite = this.scene.physics.add.sprite(x, y, texture).setDepth(100)
     this.scene.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.setPushable(false)
+    if (flipX) {
+      this.sprite.flipX = true
+    }
 
     // Configure ball collider
     this.ballCollider = this.scene.physics.add.overlap(

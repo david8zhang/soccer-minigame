@@ -1,7 +1,8 @@
 import Phaser from 'phaser'
 import { Ball } from '~/lib/Ball'
 import { InputController } from '~/lib/InputController'
-import { Player } from '~/lib/Player'
+import { Fish } from '~/lib/Fish'
+import { Constants } from '~/utils/Constants'
 
 export enum Side {
   PLAYER,
@@ -9,8 +10,8 @@ export enum Side {
 }
 
 export default class Game extends Phaser.Scene {
-  public playerTeam: Player[] = []
-  public enemyTeam: Player[] = []
+  public playerTeam: Fish[] = []
+  public enemyTeam: Fish[] = []
   public inputController!: InputController
   public ball!: Ball
 
@@ -21,13 +22,17 @@ export default class Game extends Phaser.Scene {
   create() {
     this.createField()
     this.createBall()
-    this.createPlayers()
+    this.createFish()
     this.initializeInputController()
   }
 
   createField() {
-    this.add.image(this.scale.width / 2, this.scale.height / 2, 'field')
-    this.cameras.main.setBackgroundColor('#93c47d')
+    const bgImage = this.add.image(Constants.BG_WIDTH / 2, Constants.BG_HEIGHT / 2, 'bg')
+    bgImage.setScale(Constants.BG_WIDTH / bgImage.width, Constants.BG_HEIGHT / bgImage.height)
+    this.cameras.main.setBounds(0, 0, Constants.BG_WIDTH, Constants.BG_HEIGHT)
+    this.cameras.main.setBackgroundColor(0x000000)
+    bgImage.setAlpha(0.75)
+    // this.scale.setGameSize(1600, 1200)
   }
 
   initializeInputController() {
@@ -35,25 +40,38 @@ export default class Game extends Phaser.Scene {
   }
 
   createBall() {
-    this.ball = new Ball({ x: this.scale.width / 2, y: this.scale.height / 2 }, this)
+    const ballXPos = Constants.BG_WIDTH / 2
+    const ballYPos = Constants.BG_HEIGHT / 2
+    this.ball = new Ball({ x: ballXPos, y: ballYPos }, this)
   }
 
-  createPlayers() {
+  createFish() {
     const spacing = 50
-    const numPlayersPerTeam = 1
-    let playerYPos = this.scale.height / 2
-    const playerXPos = this.scale.width / 2 - 40
-    for (let i = 0; i < numPlayersPerTeam; i++) {
-      const player = new Player({ x: playerXPos, y: playerYPos }, 0x0000ff, this)
-      this.playerTeam.push(player)
-      playerYPos += spacing
+    const numFishPerTeam = 1
+    let fishYPos = Constants.BG_HEIGHT / 2
+    const fishXPos = Constants.BG_WIDTH / 2 - Constants.BG_WIDTH / 5
+    for (let i = 0; i < numFishPerTeam; i++) {
+      const fish = new Fish(
+        { position: { x: fishXPos, y: fishYPos }, texture: 'fish4', side: Side.PLAYER },
+        this
+      )
+      this.playerTeam.push(fish)
+      fishYPos += spacing
     }
 
-    let enemyYPos = this.scale.height / 2
-    const enemyXPos = this.scale.width / 2 + 40
-    for (let i = 0; i < numPlayersPerTeam; i++) {
-      const player = new Player({ x: enemyXPos, y: enemyYPos }, 0xff0000, this)
-      this.enemyTeam.push(player)
+    let enemyYPos = Constants.BG_HEIGHT / 2
+    const enemyXPos = Constants.BG_WIDTH / 2 + Constants.BG_WIDTH / 5
+    for (let i = 0; i < numFishPerTeam; i++) {
+      const fish = new Fish(
+        {
+          position: { x: enemyXPos, y: enemyYPos },
+          side: Side.COMPUTER,
+          texture: 'fish2',
+          flipX: true,
+        },
+        this
+      )
+      this.enemyTeam.push(fish)
       enemyYPos += spacing
     }
   }
