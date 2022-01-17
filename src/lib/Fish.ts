@@ -17,6 +17,7 @@ export class Fish {
   public ballCollider: Phaser.Physics.Arcade.Collider
   public ball?: Ball
   public side: Side
+  public flipX: boolean = false
 
   constructor(fishConfig: FishConfig, scene: Game) {
     const { position, side, texture, flipX } = fishConfig
@@ -30,6 +31,7 @@ export class Fish {
     this.sprite.setPushable(false)
     if (flipX) {
       this.sprite.flipX = true
+      this.flipX = true
     }
 
     // Configure ball collider
@@ -55,8 +57,10 @@ export class Fish {
     this.ball = ball
     this.ball.currState = BallState.DRIBBLE
     this.ball.sprite.setVelocity(0, 0)
-    const yPos = this.sprite.y + (this.sprite.height / 2) * this.sprite.scale
-    this.ball.sprite.setPosition(this.sprite.x + 10, yPos)
+    const ballXPosition = this.flipX
+      ? this.sprite.x - this.sprite.width / 2 - 20
+      : this.sprite.x + this.sprite.width / 2 + 20
+    this.ball.sprite.setPosition(ballXPosition, this.sprite.y)
   }
 
   move(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
@@ -68,9 +72,11 @@ export class Fish {
       this.sprite.setVelocity(0, 0)
       return
     }
-    const speed = 200
+    const speed = 250
     if (leftDown || rightDown) {
       let velocityX = leftDown ? -speed : speed
+      this.flipX = leftDown
+      this.sprite.flipX = this.flipX
       if (leftDown && rightDown) {
         velocityX = 0
       }
@@ -99,8 +105,10 @@ export class Fish {
       this.ball.currState = BallState.LOOSE
       const ball = this.ball
       this.ball = undefined
-      ball.sprite.setVelocityX(750)
-      this.scene.time.delayedCall(50, () => {
+
+      const flipVelocity = this.flipX ? -750 : 750
+      ball.sprite.setVelocityX(flipVelocity)
+      this.scene.time.delayedCall(100, () => {
         this.ballCollider.active = true
       })
     }

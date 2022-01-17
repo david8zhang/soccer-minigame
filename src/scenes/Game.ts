@@ -3,6 +3,7 @@ import { Ball } from '~/lib/Ball'
 import { InputController } from '~/lib/InputController'
 import { Fish } from '~/lib/Fish'
 import { Constants } from '~/utils/Constants'
+import { Goal } from '~/lib/Goal'
 
 export enum Side {
   PLAYER,
@@ -14,6 +15,8 @@ export default class Game extends Phaser.Scene {
   public enemyTeam: Fish[] = []
   public inputController!: InputController
   public ball!: Ball
+  public playerGoal!: Goal
+  public enemyGoal!: Goal
 
   constructor() {
     super('game')
@@ -24,6 +27,7 @@ export default class Game extends Phaser.Scene {
     this.createBall()
     this.createFish()
     this.initializeInputController()
+    this.createGoal()
   }
 
   createField() {
@@ -32,7 +36,7 @@ export default class Game extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, Constants.BG_WIDTH, Constants.BG_HEIGHT)
     this.cameras.main.setBackgroundColor(0x000000)
     bgImage.setAlpha(0.75)
-    // this.scale.setGameSize(1600, 1200)
+    this.scale.setGameSize(1600, 1200)
   }
 
   initializeInputController() {
@@ -43,6 +47,11 @@ export default class Game extends Phaser.Scene {
     const ballXPos = Constants.BG_WIDTH / 2
     const ballYPos = Constants.BG_HEIGHT / 2
     this.ball = new Ball({ x: ballXPos, y: ballYPos }, this)
+  }
+
+  createGoal() {
+    this.playerGoal = new Goal({ x: 50, y: Constants.BG_HEIGHT / 2 }, this)
+    this.enemyGoal = new Goal({ x: Constants.BG_WIDTH - 50, y: Constants.BG_HEIGHT / 2 }, this)
   }
 
   createFish() {
