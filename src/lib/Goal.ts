@@ -1,19 +1,24 @@
 import Game from '~/scenes/Game'
 
 export class Goal {
-  private scene: Game
+  private game: Game
   public sprite: Phaser.Physics.Arcade.Sprite
   public ballCollider: Phaser.Physics.Arcade.Collider
 
-  constructor(position: { x: number; y: number }, scene: Game) {
-    this.scene = scene
+  constructor(position: { x: number; y: number }, game: Game) {
+    this.game = game
     const { x, y } = position
-    this.sprite = this.scene.physics.add.sprite(x, y, 'goal').setScale(2)
-    this.scene.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
+    this.sprite = this.game.physics.add.sprite(x, y, 'goal').setScale(2)
+    this.game.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.body.setSize(this.sprite.width * 0.2, this.sprite.height * 0.9)
-    this.ballCollider = this.scene.physics.add.overlap(this.sprite, this.scene.ball.sprite, () => {
+    this.ballCollider = this.game.physics.add.overlap(this.sprite, this.game.ball.sprite, () => {
       if (this.checkIfBallIsFullyInsideGoal()) {
-        console.log('GOAL!')
+        this.game.ball.sprite.setVisible(false)
+        this.game.scene.pause()
+        const timeout = setTimeout(() => {
+          this.game.reset()
+          clearTimeout(timeout)
+        }, 1000)
       }
     })
   }
@@ -23,8 +28,8 @@ export class Goal {
       this.sprite.y - this.sprite.displayHeight / 2 + this.sprite.displayHeight * 0.05
     const lowerEdgeOfGoal =
       this.sprite.y + this.sprite.displayHeight / 2 - this.sprite.displayHeight * 0.05
-    const upperEdgeOfBall = this.scene.ball.sprite.y - this.scene.ball.sprite.displayHeight / 2
-    const lowerEdgeOfBall = this.scene.ball.sprite.y + this.scene.ball.sprite.displayHeight / 2
+    const upperEdgeOfBall = this.game.ball.sprite.y - this.game.ball.sprite.displayHeight / 2
+    const lowerEdgeOfBall = this.game.ball.sprite.y + this.game.ball.sprite.displayHeight / 2
     if (upperEdgeOfBall > upperEdgeOfGoal && lowerEdgeOfBall < lowerEdgeOfGoal) {
       return true
     }

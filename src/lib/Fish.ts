@@ -1,4 +1,5 @@
 import Game, { Side } from '~/scenes/Game'
+import { Constants } from '~/utils/Constants'
 import { Ball, BallState } from './Ball'
 
 export interface FishConfig {
@@ -18,6 +19,7 @@ export class Fish {
   public ball?: Ball
   public side: Side
   public flipX: boolean = false
+  public isStunned: boolean = false
 
   constructor(fishConfig: FishConfig, scene: Game) {
     const { position, side, texture, flipX } = fishConfig
@@ -39,78 +41,78 @@ export class Fish {
       this.scene.ball.sprite,
       this.sprite,
       (obj1, obj2) => {
-        console.log('collided!')
         const ball = obj1.getData('ref') as Ball
         if (this.canTakeBall(ball)) {
-          this.dribble(ball)
+          this.takeBall(ball)
         }
       }
     )
   }
 
+  hasBall(ball: Ball): boolean {
+    return ball.fishWithBall === this
+  }
+
   canTakeBall(ball: Ball): boolean {
-    // The player can take the ball if the ball is currently loose or the ball has been shot by the other team
     return ball.currState === BallState.LOOSE
   }
 
-  dribble(ball: Ball) {
-    this.ball = ball
-    this.ball.currState = BallState.DRIBBLE
-    this.ball.sprite.setVelocity(0, 0)
-    const ballXPosition = this.flipX
-      ? this.sprite.x - this.sprite.width / 2 - 20
-      : this.sprite.x + this.sprite.width / 2 + 20
-    this.ball.sprite.setPosition(ballXPosition, this.sprite.y)
+  stealBall(ball: Ball) {
+    const fishWithBall = ball.fishWithBall
+    if (fishWithBall) {
+      fishWithBall.stun()
+    }
+    ball.setFishWithBall(this)
   }
 
-  move(cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
-    const leftDown = cursors.left?.isDown
-    const rightDown = cursors.right?.isDown
-    const upDown = cursors.up?.isDown
-    const downDown = cursors.down?.isDown
-    if (!leftDown && !rightDown && !upDown && !downDown) {
-      this.sprite.setVelocity(0, 0)
+  stun() {
+    this.scene.cameras.main.shake(100, 0.005)
+    this.ballCollider.active = false
+    const prevVelocity = this.sprite.body.velocity
+    this.isStunned = true
+    this.sprite.setVelocity(0, 0)
+    this.scene.time.delayedCall(500, () => {
+      this.isStunned = false
+      this.sprite.setVelocity(prevVelocity.x, prevVelocity.y)
+      this.ballCollider.active = true
+    })
+  }
+
+  setVelocity(xVelocity: number, yVelocity: number) {
+    if (this.isStunned) {
       return
     }
-    const speed = 250
-    if (leftDown || rightDown) {
-      let velocityX = leftDown ? -speed : speed
-      this.flipX = leftDown
-      this.sprite.flipX = this.flipX
-      if (leftDown && rightDown) {
-        velocityX = 0
-      }
-      this.sprite.setVelocityX(velocityX)
-    } else {
-      this.sprite.setVelocityX(0)
-    }
-
-    if (upDown || downDown) {
-      let velocityY = upDown ? -speed : speed
-      if (upDown && downDown) {
-        velocityY = 0
-      }
-      this.sprite.setVelocityY(velocityY)
-    } else {
-      this.sprite.setVelocityY(0)
-    }
-    if (this.ball && this.ball.currState === BallState.DRIBBLE) {
-      this.dribble(this.ball)
-    }
+    this.sprite.setVelocity(xVelocity, yVelocity)
   }
 
-  shoot() {
-    if (this.ball) {
-      this.ballCollider.active = false
-      this.ball.currState = BallState.LOOSE
-      const ball = this.ball
-      this.ball = undefined
-
-      const flipVelocity = this.flipX ? -750 : 750
-      ball.sprite.setVelocityX(flipVelocity)
-      this.scene.time.delayedCall(100, () => {
-        this.ballCollider.active = true
-      })
+  setVelocityX(xVelocity: number) {
+    if (this.isStunned) {
+      return
     }
+    this.sprite.setVelocityX(xVelocity)
+  }
+
+  setVelocityY(yVelocity: number) {
+    if (this.isStunned) {
+      return
+    }
+    this.sprite.setVelocityY(yVelocity)
+  }
+
+  takeBall(ball: Ball) {
+    ball.setFishWithBall(this)
+  }
+
+  setFlipX(flipX: boolean) {
+    this.flipX = flipX
+    this.sprite.flipX = flipX
+  }
+
+  shoot(ball: Ball) {
+    this.ballCollider.active = false
+    ball.shoot()
+    this.scene.time.delayedCall(100, () => {
+      this.ballCollider.active = true
+    })
   }
 }

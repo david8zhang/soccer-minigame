@@ -1,4 +1,5 @@
-import Game from '~/scenes/Game'
+import Game, { Side } from '~/scenes/Game'
+import { Constants } from '~/utils/Constants'
 import { Fish } from './Fish'
 
 export enum BallState {
@@ -10,6 +11,7 @@ export class Ball {
   private scene: Game
   public sprite: Phaser.Physics.Arcade.Sprite
   public currState: BallState = BallState.LOOSE
+  public fishWithBall: Fish | null = null
 
   constructor(position: { x: number; y: number }, scene: Game) {
     this.scene = scene
@@ -18,5 +20,50 @@ export class Ball {
     this.scene.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.setData('ref', this)
     this.sprite.setDepth(200)
+  }
+
+  get possessionSide() {
+    if (!this.fishWithBall) {
+      return Side.NONE
+    }
+    return this.fishWithBall.side
+  }
+
+  setFishWithBall(fishWithBall: Fish) {
+    this.fishWithBall = fishWithBall
+    this.currState = BallState.DRIBBLE
+  }
+
+  shoot() {
+    if (this.fishWithBall) {
+      const flipVelocity = this.fishWithBall.flipX
+        ? -Constants.SHOOT_VELOCITY
+        : Constants.SHOOT_VELOCITY
+
+      this.sprite.setVelocityX(flipVelocity)
+      this.fishWithBall = null
+      this.currState = BallState.LOOSE
+    }
+  }
+
+  update() {
+    if (this.fishWithBall) {
+      const fishWithBallSprite = this.fishWithBall.sprite
+      this.sprite.setVelocity(0, 0)
+      const ballXPosition = this.fishWithBall.flipX
+        ? fishWithBallSprite.x - fishWithBallSprite.width / 2 - 20
+        : fishWithBallSprite.x + fishWithBallSprite.width / 2 + 20
+      this.sprite.setPosition(ballXPosition, fishWithBallSprite.y)
+    }
+  }
+
+  reset() {
+    this.fishWithBall = null
+    this.currState = BallState.LOOSE
+    const ballXPos = Constants.BG_WIDTH / 2
+    const ballYPos = Constants.BG_HEIGHT / 2
+    this.sprite.setVelocity(0)
+    this.sprite.setVisible(true)
+    this.sprite.setPosition(ballXPos, ballYPos)
   }
 }

@@ -4,10 +4,12 @@ import { InputController } from '~/lib/InputController'
 import { Fish } from '~/lib/Fish'
 import { Constants } from '~/utils/Constants'
 import { Goal } from '~/lib/Goal'
+import { AI } from '~/lib/AI'
 
 export enum Side {
   PLAYER,
   COMPUTER,
+  NONE,
 }
 
 export default class Game extends Phaser.Scene {
@@ -17,6 +19,7 @@ export default class Game extends Phaser.Scene {
   public ball!: Ball
   public playerGoal!: Goal
   public enemyGoal!: Goal
+  public ai!: AI
 
   constructor() {
     super('game')
@@ -26,8 +29,9 @@ export default class Game extends Phaser.Scene {
     this.createField()
     this.createBall()
     this.createFish()
-    this.initializeInputController()
     this.createGoal()
+    this.initializeInputController()
+    this.initializeAI()
   }
 
   createField() {
@@ -43,15 +47,46 @@ export default class Game extends Phaser.Scene {
     this.inputController = new InputController(this)
   }
 
+  initializeAI() {
+    this.ai = new AI(this)
+  }
+
   createBall() {
     const ballXPos = Constants.BG_WIDTH / 2
     const ballYPos = Constants.BG_HEIGHT / 2
     this.ball = new Ball({ x: ballXPos, y: ballYPos }, this)
   }
 
+  reset() {
+    this.ball.reset()
+    this.resetFishPositions()
+    this.scene.resume()
+  }
+
   createGoal() {
     this.playerGoal = new Goal({ x: 50, y: Constants.BG_HEIGHT / 2 }, this)
     this.enemyGoal = new Goal({ x: Constants.BG_WIDTH - 50, y: Constants.BG_HEIGHT / 2 }, this)
+  }
+
+  getPlayerSelectedFish(): Fish | undefined {
+    return this.inputController.getPlayerSelectedFish()
+  }
+
+  resetFishPositions() {
+    const spacing = 50
+    const numFishPerTeam = 1
+    let fishYPos = Constants.BG_HEIGHT / 2
+    const fishXPos = Constants.BG_WIDTH / 2 - Constants.BG_WIDTH / 5
+    for (let i = 0; i < numFishPerTeam; i++) {
+      this.playerTeam[i].sprite.setPosition(fishXPos, fishYPos)
+      fishYPos += spacing
+    }
+    let enemyYPos = Constants.BG_HEIGHT / 2
+    const enemyXPos = Constants.BG_WIDTH / 2 + Constants.BG_WIDTH / 5
+    for (let i = 0; i < numFishPerTeam; i++) {
+      this.enemyTeam[i].sprite.setPosition(enemyXPos, enemyYPos)
+      enemyYPos += spacing
+    }
   }
 
   createFish() {
@@ -87,5 +122,7 @@ export default class Game extends Phaser.Scene {
 
   update() {
     this.inputController.update()
+    this.ai.update()
+    this.ball.update()
   }
 }
