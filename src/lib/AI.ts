@@ -4,6 +4,9 @@ import { Fish } from './Fish'
 
 export class AI {
   private game: Game
+  public static DISTANCE_TO_GOAL = 500
+  public isShooting: boolean = false
+
   constructor(game: Game) {
     this.game = game
   }
@@ -32,9 +35,16 @@ export class AI {
   }
 
   move() {
+    if (this.isShooting) {
+      return
+    }
     // If the enemy has the ball, move towards the goal and away from the player
     if (this.computerHasBall()) {
-      this.moveTowardsGoal()
+      if (this.withinShootingRange()) {
+        this.shootBall()
+      } else {
+        this.moveTowardsGoal()
+      }
     }
     // If the player has the ball, follow the player and try to take it from them
     else if (this.playerHasBall()) {
@@ -56,6 +66,27 @@ export class AI {
       const fishClosestToPlayer = this.getFishClosestToObject(playerSelectedFish)
       fishClosestToPlayer.stealBall(this.game.ball)
     }
+  }
+
+  shootBall() {
+    const fishWithBall = this.game.ball.fishWithBall
+    if (fishWithBall) {
+      this.isShooting = true
+      fishWithBall.setVelocity(0, 0)
+      fishWithBall.shoot(this.game.ball, this.game.playerGoal)
+      this.game.time.delayedCall(1000, () => {
+        this.isShooting = false
+      })
+    }
+  }
+
+  withinShootingRange() {
+    const fishWithBall = this.game.ball.fishWithBall
+    if (fishWithBall) {
+      const distance = Constants.getDistanceBetweenObjects(fishWithBall, this.game.playerGoal)
+      return distance < AI.DISTANCE_TO_GOAL
+    }
+    return false
   }
 
   canStealBallFromPlayer(): boolean {

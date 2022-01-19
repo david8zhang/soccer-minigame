@@ -34,13 +34,15 @@ export class Ball {
     this.currState = BallState.DRIBBLE
   }
 
-  shoot() {
+  shoot(angle: number) {
     if (this.fishWithBall) {
-      const flipVelocity = this.fishWithBall.flipX
-        ? -Constants.SHOOT_VELOCITY
-        : Constants.SHOOT_VELOCITY
-
-      this.sprite.setVelocityX(flipVelocity)
+      const speedMultiplier = 2
+      const velocityVector = new Phaser.Math.Vector2(0, 0)
+      this.scene.physics.velocityFromRotation(angle, Constants.FISH_SPEED, velocityVector)
+      this.sprite.setVelocity(
+        velocityVector.x * speedMultiplier,
+        velocityVector.y * speedMultiplier
+      )
       this.fishWithBall = null
       this.currState = BallState.LOOSE
     }

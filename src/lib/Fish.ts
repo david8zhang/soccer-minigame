@@ -1,6 +1,7 @@
 import Game, { Side } from '~/scenes/Game'
 import { Constants } from '~/utils/Constants'
 import { Ball, BallState } from './Ball'
+import { Goal } from './Goal'
 
 export interface FishConfig {
   position: {
@@ -108,9 +109,19 @@ export class Fish {
     this.sprite.flipX = flipX
   }
 
-  shoot(ball: Ball) {
+  shoot(ball: Ball, goal: Goal) {
     this.ballCollider.active = false
-    ball.shoot()
+    const angle = Phaser.Math.Angle.BetweenPoints(
+      {
+        x: this.sprite.x,
+        y: this.sprite.y,
+      },
+      {
+        x: goal.sprite.x,
+        y: goal.sprite.y,
+      }
+    )
+    ball.shoot(angle)
     this.scene.time.delayedCall(100, () => {
       this.ballCollider.active = true
     })

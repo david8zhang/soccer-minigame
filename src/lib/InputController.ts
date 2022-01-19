@@ -23,7 +23,7 @@ export class InputController {
         case 'Space': {
           const selectedPlayer = this.cursor.getSelectedFish()
           if (selectedPlayer && selectedPlayer.hasBall(this.scene.ball)) {
-            selectedPlayer.shoot(this.scene.ball)
+            selectedPlayer.shoot(this.scene.ball, this.scene.enemyGoal)
           }
           break
         }
