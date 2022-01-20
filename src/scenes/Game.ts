@@ -20,12 +20,15 @@ export default class Game extends Phaser.Scene {
   public playerGoal!: Goal
   public enemyGoal!: Goal
   public ai!: AI
+  public graphics!: Phaser.GameObjects.Graphics
 
   constructor() {
     super('game')
   }
 
   create() {
+    this.graphics = this.add.graphics()
+    this.graphics.lineStyle(2, 0x00ff00)
     this.createField()
     this.createBall()
     this.createFish()
@@ -121,8 +124,20 @@ export default class Game extends Phaser.Scene {
   }
 
   update() {
+    this.updateGraphics()
     this.inputController.update()
     this.ai.update()
     this.ball.update()
+    this.updateAllFish()
+  }
+
+  updateGraphics() {
+    this.graphics.clear()
+    this.graphics.lineStyle(2, 0x00ff00)
+  }
+
+  updateAllFish() {
+    this.playerTeam.forEach((fish) => fish.update())
+    this.enemyTeam.forEach((fish) => fish.update())
   }
 }

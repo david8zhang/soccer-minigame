@@ -22,6 +22,9 @@ export class Fish {
   public flipX: boolean = false
   public isStunned: boolean = false
 
+  // Rectangle used by AI to do steering
+  public markerRectangle: Phaser.Geom.Rectangle
+
   constructor(fishConfig: FishConfig, scene: Game) {
     const { position, side, texture, flipX } = fishConfig
     this.scene = scene
@@ -47,6 +50,12 @@ export class Fish {
           this.takeBall(ball)
         }
       }
+    )
+    this.markerRectangle = new Phaser.Geom.Rectangle(
+      this.sprite.x,
+      this.sprite.y,
+      this.sprite.body.width,
+      this.sprite.body.height * 4
     )
   }
 
@@ -125,5 +134,10 @@ export class Fish {
     this.scene.time.delayedCall(100, () => {
       this.ballCollider.active = true
     })
+  }
+
+  update() {
+    Phaser.Geom.Rectangle.CenterOn(this.markerRectangle, this.sprite.x, this.sprite.y)
+    // this.scene.graphics.strokeRectShape(this.markerRectangle)
   }
 }
