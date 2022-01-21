@@ -56,7 +56,7 @@ export class AI {
     }
     // If nobody has the ball,
     else {
-      this.moveTowardsObject(this.game.ball)
+      // this.moveTowardsObject(this.game.ball)
     }
   }
 
@@ -95,12 +95,11 @@ export class AI {
     return distance < Constants.STEAL_DISTANCE && !fishClosestToPlayer.isStunned
   }
 
-  moveTowardsObject(object: Object) {
-    const fishClosestToBall = this.getFishClosestToObject(object)
+  moveTowardsObject(fish: Fish, object: Object) {
     const angle = Phaser.Math.Angle.BetweenPoints(
       {
-        x: fishClosestToBall.sprite.x,
-        y: fishClosestToBall.sprite.y,
+        x: fish.sprite.x,
+        y: fish.sprite.y,
       },
       {
         x: object.sprite.x,
@@ -109,8 +108,8 @@ export class AI {
     )
     const velocityVector = new Phaser.Math.Vector2(0, 0)
     this.game.physics.velocityFromRotation(angle, Constants.FISH_SPEED, velocityVector)
-    fishClosestToBall.setFlipX(velocityVector.x < 0)
-    fishClosestToBall.setVelocity(velocityVector.x, velocityVector.y)
+    fish.setFlipX(velocityVector.x < 0)
+    fish.setVelocity(velocityVector.x, velocityVector.y)
   }
 
   getBestAngleAwayFromPlayerFish(selectedFish: Fish, playerFish: Fish) {
@@ -126,32 +125,14 @@ export class AI {
     )
     let resultAngle = angleToGoal
     let minDiff = Number.MAX_SAFE_INTEGER
+    const angles: number[] = []
     for (let i = -30; i <= 30; i += 15) {
-      const diff = Phaser.Math.DegToRad(i)
-      const line = new Phaser.Geom.Line()
-      const newAngle = angleToGoal + diff
-      Phaser.Geom.Line.SetToAngle(
-        line,
-        selectedFish.sprite.x,
-        selectedFish.sprite.y,
-        newAngle,
-        Constants.BG_WIDTH
-      )
-      if (
-        !Phaser.Geom.Intersects.LineToRectangle(line, playerFish.markerRectangle) &&
-        diff < minDiff
-      ) {
-        this.game.graphics.lineStyle(1, 0x00ff00)
-        minDiff = diff
-        resultAngle = newAngle
-      } else {
-        this.game.graphics.lineStyle(1, 0xff0000)
-      }
-      this.game.graphics.strokeLineShape(line)
+      angles.push(Phaser.Math.DegToRad(i))
     }
-
     for (let i = 120; i <= 180; i += 15) {
-      const diff = Phaser.Math.DegToRad(i)
+      angles.push(Phaser.Math.DegToRad(i))
+    }
+    angles.forEach((diff) => {
       const line = new Phaser.Geom.Line()
       const newAngle = angleToGoal + diff
       Phaser.Geom.Line.SetToAngle(
@@ -172,29 +153,29 @@ export class AI {
         this.game.graphics.lineStyle(1, 0xff0000)
       }
       this.game.graphics.strokeLineShape(line)
-    }
+    })
     return resultAngle
   }
 
   moveTowardsGoal() {
-    const fishWithBall = this.game.ball.fishWithBall
-    if (fishWithBall) {
-      fishWithBall.setVelocity(0, 0)
-      const angle = this.getBestAngleAwayFromPlayerFish(
-        fishWithBall,
+    this.game.enemyTeam.forEach((fish) => {
+      let angle = this.getBestAngleAwayFromPlayerFish(
+        fish,
         this.game.getPlayerSelectedFish() as Fish
       )
       const velocityVector = new Phaser.Math.Vector2()
       this.game.physics.velocityFromRotation(angle, Constants.FISH_SPEED, velocityVector)
-      fishWithBall.setFlipX(velocityVector.x < 0)
-      fishWithBall.setVelocity(velocityVector.x, velocityVector.y)
-    }
+      fish.setFlipX(velocityVector.x < 0)
+      fish.setVelocity(velocityVector.x, velocityVector.y)
+    })
   }
 
   moveTowardsPlayer() {
     const playerWithBall = this.game.ball.fishWithBall
     if (playerWithBall) {
-      this.moveTowardsObject(playerWithBall)
+      this.game.enemyTeam.forEach((fish) => {
+        this.moveTowardsObject(fish, playerWithBall)
+      })
     }
   }
 

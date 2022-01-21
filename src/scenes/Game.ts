@@ -94,7 +94,7 @@ export default class Game extends Phaser.Scene {
 
   createFish() {
     const spacing = 50
-    const numFishPerTeam = 1
+    const numFishPerTeam = 2
     let fishYPos = Constants.BG_HEIGHT / 2
     const fishXPos = Constants.BG_WIDTH / 2 - Constants.BG_WIDTH / 5
     for (let i = 0; i < numFishPerTeam; i++) {
