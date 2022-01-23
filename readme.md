@@ -1,26 +1,51 @@
 # Sakana Soccer
 
-A combination of Feeding Frenzy and Soccer, you play as a fish who must score goals in an underwater game of soccer. You can eat pellets of food to grow bigger, and being bigger enables you to use speed boosts, shoot the ball faster, and defend better
+A fish themed soccer minigame with some very rudimentary AI
 
-## AI Implementation
+AI Logic Design
 
-AI fish can have two roles:
+Classes
 
-1. Attack
-2. Defense
+- Soccer Team
+- Player
 
-Attack:
+Soccer Team
 
-- Go for the ball if it's loose
-- If I have the ball:
-  - If near the enemy, attempt to avoid the enemy until a passing lane opens
-  - If near the goal and open shooting lane, shoot. Else, avoid the enemy and try to pass
-- If my team has the ball
-  - go to one of three possible positions some distance away from the goal. Pick the position
-    that is furthest away from any enemies
+- Manages overall positioning of players on the field
 
-Defense:
+  - Divide field into cells, and maintain the "home cells" of each player based on the current
+    team state
 
-- Stay in the player's passing lanes
-- If the player is near the goal, stay in the player's goal lanes or move towards them
-- If near the player within a certain radius, attempt to steal the ball, else go back to above 2 behaviors
+- Maintains references to "Key" players:
+
+  - Receiving Player: player waiting to receive the ball from another player
+  - Closest Player to the ball
+  - Player controlling the ball
+  - The supporting player
+
+- Has one of 2 possible states:
+
+  1. Attacking
+  2. Defending
+
+Player
+
+- Handle player movement
+- Player also maintains a global message router to facillitate communication
+- Two types of players, Field Players and Goal Keepers
+
+- Field Players maintain the following states:
+
+  1. Wait
+  2. ReceiveBall
+  3. Dribble
+  4. ChaseBall
+  5. ReturnToHomeRegion
+  6. SupportAttacker
+
+- GoalKeeper players maintain the following states:
+
+  1. TendGoal
+  2. ReturnHome
+  3. PutBallBackInPlay
+  4. InterceptBall

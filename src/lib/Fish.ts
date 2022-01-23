@@ -1,5 +1,4 @@
 import Game, { Side } from '~/scenes/Game'
-import { Constants } from '~/utils/Constants'
 import { Ball, BallState } from './Ball'
 import { Goal } from './Goal'
 
@@ -21,6 +20,7 @@ export class Fish {
   public side: Side
   public flipX: boolean = false
   public isStunned: boolean = false
+  public homeRegionId: number = 0
 
   // Rectangle used by AI to do steering
   public markerRectangle: Phaser.Geom.Rectangle
@@ -59,6 +59,10 @@ export class Fish {
     )
   }
 
+  setHomeRegionId(id: number) {
+    this.homeRegionId = id
+  }
+
   hasBall(ball: Ball): boolean {
     return ball.fishWithBall === this
   }
@@ -69,7 +73,7 @@ export class Fish {
 
   stealBall(ball: Ball) {
     const fishWithBall = ball.fishWithBall
-    if (fishWithBall) {
+    if (fishWithBall && fishWithBall !== this) {
       fishWithBall.stun()
     }
     ball.setFishWithBall(this)
@@ -118,7 +122,7 @@ export class Fish {
     this.sprite.flipX = flipX
   }
 
-  shoot(ball: Ball, goal: Goal) {
+  kickBall(ball: Ball, target: { sprite: Phaser.Physics.Arcade.Sprite }) {
     this.ballCollider.active = false
     const angle = Phaser.Math.Angle.BetweenPoints(
       {
@@ -126,18 +130,13 @@ export class Fish {
         y: this.sprite.y,
       },
       {
-        x: goal.sprite.x,
-        y: goal.sprite.y,
+        x: target.sprite.x,
+        y: target.sprite.y,
       }
     )
     ball.shoot(angle)
     this.scene.time.delayedCall(100, () => {
       this.ballCollider.active = true
     })
-  }
-
-  update() {
-    Phaser.Geom.Rectangle.CenterOn(this.markerRectangle, this.sprite.x, this.sprite.y)
-    // this.scene.graphics.strokeRectShape(this.markerRectangle)
   }
 }
