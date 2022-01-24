@@ -1,16 +1,21 @@
 import Game from '~/scenes/Game'
 import { Constants } from '~/utils/Constants'
+import { Fish } from './Fish'
 
 export class Debug {
   private game: Game
   private objects: Phaser.GameObjects.Group
   public isVisible: boolean = false
   public alpha: number = 0.5
+  public fishStates: Phaser.GameObjects.Text[] = []
+  public bestPlayerSupportPositions: any[] = []
 
   constructor(game: Game) {
     this.game = game
     this.objects = this.game.add.group()
     this.debugFieldGrid()
+    this.debugAllFishStates()
+    this.debugSupportingPositions()
   }
 
   debugFieldGrid() {
@@ -37,8 +42,43 @@ export class Debug {
     }
   }
 
+  debugSupportingPositions() {
+    this.bestPlayerSupportPositions.forEach((circle) => circle.destroy())
+    this.bestPlayerSupportPositions = []
+    this.game.player.bestPositions.forEach((coordinates) => {
+      const { x, y, radius } = coordinates
+      const circle = this.game.add.circle(x, y, radius ? radius : 5, 0x00ff00)
+      this.bestPlayerSupportPositions.push(circle)
+    })
+  }
+
+  debugAllFishStates() {
+    const showStateText = (fish: Fish) => {
+      const state = fish.getCurrentState()
+      const stateText = this.game.add.text(
+        fish.sprite.x - fish.sprite.displayWidth / 2,
+        fish.sprite.y - 50,
+        state
+      )
+      stateText.setData('ref', fish)
+      this.fishStates.push(stateText)
+      this.objects.add(stateText)
+    }
+    this.game.cpu.fieldPlayers.forEach(showStateText)
+    this.game.player.fieldPlayers.forEach(showStateText)
+  }
+
   setVisible(isVisible: boolean) {
     this.isVisible = isVisible
     this.objects.setVisible(isVisible)
+  }
+
+  update() {
+    this.fishStates.forEach((text: Phaser.GameObjects.Text) => {
+      const fishRef = text.getData('ref') as Fish
+      text.setText(fishRef.getCurrentState())
+      text.setPosition(fishRef.sprite.x - fishRef.sprite.displayWidth / 2, fishRef.sprite.y - 50)
+    })
+    this.debugSupportingPositions()
   }
 }

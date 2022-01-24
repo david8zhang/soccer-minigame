@@ -1,7 +1,8 @@
 import { Fish } from '~/lib/Fish'
 
 export type Object = {
-  sprite: Phaser.Physics.Arcade.Sprite
+  x: number
+  y: number
 }
 
 export class Constants {
@@ -26,8 +27,8 @@ export class Constants {
   static PLAYER_DEFEND_POSITIONS = [9, 25]
 
   static getDistanceBetweenObjects(obj1: Object, obj2: Object) {
-    const pos1 = { x: obj1.sprite.x, y: obj1.sprite.y }
-    const pos2 = { x: obj2.sprite.x, y: obj2.sprite.y }
+    const pos1 = { x: obj1.x, y: obj1.y }
+    const pos2 = { x: obj2.x, y: obj2.y }
     return Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2))
   }
 }

@@ -29,7 +29,7 @@ export default class Game extends Phaser.Scene {
   // Field
   public fieldGrid!: FieldZone[][]
   public playerGoal!: Goal
-  public enemyGoal!: Goal
+  public cpuGoal!: Goal
   public ball!: Ball
 
   // Other
@@ -109,7 +109,7 @@ export default class Game extends Phaser.Scene {
 
   createGoal() {
     this.playerGoal = new Goal({ x: 50, y: Constants.BG_HEIGHT / 2 }, this)
-    this.enemyGoal = new Goal({ x: Constants.BG_WIDTH - 50, y: Constants.BG_HEIGHT / 2 }, this)
+    this.cpuGoal = new Goal({ x: Constants.BG_WIDTH - 50, y: Constants.BG_HEIGHT / 2 }, this)
   }
 
   getPlayerSelectedFish(): Fish | undefined {
@@ -118,6 +118,8 @@ export default class Game extends Phaser.Scene {
 
   update() {
     this.player.update()
+    this.cpu.update()
     this.ball.update()
+    this.debug.update()
   }
 }

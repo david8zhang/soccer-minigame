@@ -1,63 +1,78 @@
 import Game, { Side } from '~/scenes/Game'
+import { BestSupportingSpotUtil } from '~/utils/BestSupportingSpotUtil'
 import { Constants } from '~/utils/Constants'
 import { Cursor } from './Cursor'
 import { Fish } from './Fish'
+import { StateMachine } from './states/StateMachine'
+import { PlayerStates, TeamStates } from './states/StateTypes'
+import { AttackState } from './states/team/AttackState'
+import { DefendState } from './states/team/DefendState'
+import { Team } from './Team'
 
-export class Player {
-  private game: Game
-  public players: Fish[]
+export class Player extends Team {
   private cursor: Cursor
   private selectedPlayerIndex: number = 0
+  public side: Side = Side.PLAYER
+  public didDrawPositions?: boolean = false
+  public bestPositions: { x: number; y: number; radius?: number }[] = []
 
   constructor(game: Game) {
-    this.game = game
-    this.players = this.createFieldPlayers(Constants.NUM_FIELD_PLAYERS_PER_TEAM, 'fish4')
+    super(game)
+    this.fieldPlayers = this.createFieldPlayers(
+      Constants.NUM_FIELD_PLAYERS_PER_TEAM,
+      'fish4',
+      this.side,
+      Constants.PLAYER_KICKOFF_POSITIONS
+    )
     this.cursor = new Cursor({ x: 0, y: 0 }, this.game)
-    this.cursor.selectFish(this.players[this.selectedPlayerIndex])
+    this.selectFish(this.fieldPlayers[this.selectedPlayerIndex])
     this.listenKeyboardInputs()
+  }
+
+  onPlayerGetBall() {
+    this.stateMachine.transition(TeamStates.ATTACKING)
   }
 
   getSelectedFish() {
     return this.cursor.getSelectedFish()
   }
 
-  createFieldPlayers(numFieldPlayers: number, playerTexture: string): Fish[] {
-    const players: Fish[] = []
-    const positions = Constants.PLAYER_KICKOFF_POSITIONS
-    for (let i = 0; i < numFieldPlayers; i++) {
-      const zoneId = positions[i]
-      if (zoneId) {
-        const zone = this.game.getZoneForZoneId(zoneId)
-        if (zone) {
-          const { centerPosition } = zone
-          const fish = new Fish(
-            {
-              position: { x: centerPosition.x, y: centerPosition.y },
-              side: Side.PLAYER,
-              texture: playerTexture,
-            },
-            this.game
-          )
-          players.push(fish)
-        }
-      }
-    }
-    return players
+  getBestSupportingPosition() {
+    const { positions, bestPosition } = BestSupportingSpotUtil.getBestSupportingSpotPlayer(
+      this.game
+    )
+    this.bestPositions = positions
+    return bestPosition
   }
+
+  getEnemyTeam(): Team {
+    return this.game.cpu
+  }
+
+  getScoreForPosition(position: { x: number; y: number }) {}
 
   switchPlayer() {
     const selectedFish = this.getSelectedFish()
     if (selectedFish) {
       selectedFish.setVelocity(0, 0)
     }
-    this.selectedPlayerIndex = (this.selectedPlayerIndex + 1) % this.players.length
-    this.cursor.selectFish(this.players[this.selectedPlayerIndex])
+    this.selectedPlayerIndex = (this.selectedPlayerIndex + 1) % this.fieldPlayers.length
+    this.selectFish(this.fieldPlayers[this.selectedPlayerIndex])
+  }
+
+  selectFish(fish: Fish) {
+    const previouslySelected = this.cursor.getSelectedFish()
+    if (previouslySelected) {
+      previouslySelected.setState(PlayerStates.SUPPORT)
+    }
+    fish.setState(PlayerStates.PLAYER_CONTROL)
+    this.cursor.selectFish(fish)
   }
 
   passBall() {
     const fishWithBall = this.game.ball.fishWithBall
     if (fishWithBall && fishWithBall.side === Side.PLAYER) {
-      const supportingFish = this.players.find((f: Fish) => f !== fishWithBall)
+      const supportingFish = this.fieldPlayers.find((f: Fish) => f !== fishWithBall)
       if (supportingFish) {
         fishWithBall.kickBall(this.game.ball, supportingFish)
         const timeEvent = this.game.time.addEvent({
@@ -65,7 +80,7 @@ export class Player {
           delay: 10,
           callback: () => {
             if (this.game.ball.fishWithBall === supportingFish) {
-              this.cursor.selectFish(supportingFish)
+              this.selectFish(supportingFish)
               timeEvent.destroy()
               fishWithBall.setVelocity(0, 0)
             }
@@ -78,38 +93,58 @@ export class Player {
   stealBall() {
     const fish = this.getSelectedFish()
     if (fish) {
-      const distance = Constants.getDistanceBetweenObjects(fish, this.game.ball)
+      const distance = Constants.getDistanceBetweenObjects(fish.sprite, this.game.ball.sprite)
       if (distance < Constants.STEAL_DISTANCE) {
         fish.stealBall(this.game.ball)
       }
     }
   }
 
+  updateTeamState() {
+    if (this.hasPossession()) {
+      this.stateMachine.transition(TeamStates.ATTACKING)
+    } else {
+      this.stateMachine.transition(TeamStates.DEFENDING)
+    }
+  }
+
+  public getEnemyGoal() {
+    return this.game.cpuGoal
+  }
+
+  public getCurrentGoal() {
+    return this.game.playerGoal
+  }
+
   update() {
+    super.update()
     this.cursor.follow()
     this.handlePlayerMovement()
+    this.fieldPlayers.forEach((fish: Fish) => {
+      fish.update()
+    })
   }
 
   listenKeyboardInputs() {
     this.game.input.keyboard.on('keydown', (keyCode) => {
       switch (keyCode.code) {
         case 'KeyA': {
-          this.game.player.passBall()
+          this.passBall()
           break
         }
         case 'KeyS': {
-          const selectedPlayer = this.game.getPlayerSelectedFish()
+          const selectedPlayer = this.getSelectedFish()
           if (selectedPlayer && selectedPlayer.hasBall(this.game.ball)) {
-            selectedPlayer.kickBall(this.game.ball, this.game.enemyGoal)
+            selectedPlayer.kickBall(this.game.ball, this.game.cpuGoal)
           }
           break
         }
         case 'KeyD': {
-          this.game.player.stealBall()
+          this.stealBall()
           break
         }
         case 'Space': {
-          this.game.player.switchPlayer()
+          this.switchPlayer()
           break
         }
         case 'Backquote':
@@ -117,6 +152,14 @@ export class Player {
           break
       }
     })
+  }
+
+  hasPossession() {
+    return this.game.ball.possessionSide == Side.PLAYER
+  }
+
+  enemyHasPossession() {
+    return this.game.ball.possessionSide == Side.COMPUTER
   }
 
   handlePlayerMovement() {
@@ -137,7 +180,6 @@ export class Player {
     const speed = Constants.FISH_SPEED
     if (leftDown || rightDown) {
       let velocityX = leftDown ? -speed : speed
-      playerFish.setFlipX(leftDown)
       if (leftDown && rightDown) {
         velocityX = 0
       }

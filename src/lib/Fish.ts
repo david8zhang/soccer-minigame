@@ -1,6 +1,13 @@
 import Game, { Side } from '~/scenes/Game'
+import { Constants } from '~/utils/Constants'
 import { Ball, BallState } from './Ball'
-import { Goal } from './Goal'
+import { PlayerControlState } from './states/player/PlayerControlState'
+import { StateMachine } from './states/StateMachine'
+import { PlayerStates } from './states/StateTypes'
+import { SupportState } from './states/player/SupportState'
+import { WaitState } from './states/player/WaitState'
+import { Team } from './Team'
+import { DribbleState } from './states/player/DribbleState'
 
 export interface FishConfig {
   position: {
@@ -10,30 +17,35 @@ export interface FishConfig {
   side: Side
   flipX?: boolean
   texture: string
+  team: Team
 }
 
 export class Fish {
-  private scene: Game
+  private game: Game
   public sprite: Phaser.Physics.Arcade.Sprite
   public ballCollider: Phaser.Physics.Arcade.Collider
   public ball?: Ball
   public side: Side
+  public team: Team
   public flipX: boolean = false
   public isStunned: boolean = false
-  public homeRegionId: number = 0
+  public moveTarget: { x: number; y: number } | null = null
+  public stateMachine: StateMachine
+  public onGetBallListeners: Function[] = []
 
   // Rectangle used by AI to do steering
   public markerRectangle: Phaser.Geom.Rectangle
 
-  constructor(fishConfig: FishConfig, scene: Game) {
-    const { position, side, texture, flipX } = fishConfig
-    this.scene = scene
+  constructor(fishConfig: FishConfig, game: Game) {
+    const { position, side, texture, flipX, team } = fishConfig
+    this.game = game
     const { x, y } = position
     this.side = side
+    this.team = team
 
     // Configure sprite
-    this.sprite = this.scene.physics.add.sprite(x, y, texture).setDepth(100)
-    this.scene.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
+    this.sprite = this.game.physics.add.sprite(x, y, texture).setDepth(100)
+    this.game.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.setPushable(false)
     if (flipX) {
       this.sprite.flipX = true
@@ -41,8 +53,8 @@ export class Fish {
     }
 
     // Configure ball collider
-    this.ballCollider = this.scene.physics.add.overlap(
-      this.scene.ball.sprite,
+    this.ballCollider = this.game.physics.add.overlap(
+      this.game.ball.sprite,
       this.sprite,
       (obj1, obj2) => {
         const ball = obj1.getData('ref') as Ball
@@ -57,10 +69,29 @@ export class Fish {
       this.sprite.body.width,
       this.sprite.body.height * 4
     )
+
+    this.stateMachine = new StateMachine(
+      PlayerStates.WAIT,
+      {
+        [PlayerStates.SUPPORT]: new SupportState(),
+        [PlayerStates.WAIT]: new WaitState(),
+        [PlayerStates.PLAYER_CONTROL]: new PlayerControlState(),
+        [PlayerStates.DRIBBLE]: new DribbleState(),
+      },
+      [this, this.team]
+    )
   }
 
-  setHomeRegionId(id: number) {
-    this.homeRegionId = id
+  setState(state: string) {
+    this.stateMachine.transition(state)
+  }
+
+  getCurrentState(): string {
+    return this.stateMachine.getState()
+  }
+
+  setMoveTarget(moveTarget: { x: number; y: number } | null) {
+    this.moveTarget = moveTarget
   }
 
   hasBall(ball: Ball): boolean {
@@ -69,6 +100,10 @@ export class Fish {
 
   canTakeBall(ball: Ball): boolean {
     return ball.currState === BallState.LOOSE
+  }
+
+  addOnGetBallListener(listener: Function) {
+    this.onGetBallListeners.push(listener)
   }
 
   stealBall(ball: Ball) {
@@ -80,12 +115,12 @@ export class Fish {
   }
 
   stun() {
-    this.scene.cameras.main.shake(100, 0.005)
+    this.game.cameras.main.shake(100, 0.005)
     this.ballCollider.active = false
     const prevVelocity = this.sprite.body.velocity
     this.isStunned = true
     this.sprite.setVelocity(0, 0)
-    this.scene.time.delayedCall(500, () => {
+    this.game.time.delayedCall(500, () => {
       this.isStunned = false
       this.sprite.setVelocity(prevVelocity.x, prevVelocity.y)
       this.ballCollider.active = true
@@ -96,12 +131,24 @@ export class Fish {
     if (this.isStunned) {
       return
     }
+    if (xVelocity < 0) {
+      this.setFlipX(true)
+    }
+    if (xVelocity > 0) {
+      this.setFlipX(false)
+    }
     this.sprite.setVelocity(xVelocity, yVelocity)
   }
 
   setVelocityX(xVelocity: number) {
     if (this.isStunned) {
       return
+    }
+    if (xVelocity < 0) {
+      this.setFlipX(true)
+    }
+    if (xVelocity > 0) {
+      this.setFlipX(false)
     }
     this.sprite.setVelocityX(xVelocity)
   }
@@ -115,6 +162,36 @@ export class Fish {
 
   takeBall(ball: Ball) {
     ball.setFishWithBall(this)
+    this.onGetBallListeners.forEach((listener) => listener())
+  }
+
+  update() {
+    Phaser.Geom.Rectangle.CenterOn(this.markerRectangle, this.sprite.x, this.sprite.y)
+    this.stateMachine.step()
+    this.moveTowardsTarget()
+  }
+
+  moveTowardsTarget() {
+    if (this.moveTarget) {
+      const distance = Constants.getDistanceBetweenObjects(this.sprite, this.moveTarget)
+      if (Math.abs(distance) < 5) {
+        this.setVelocity(0, 0)
+      } else {
+        const angle = Phaser.Math.Angle.BetweenPoints(
+          {
+            x: this.sprite.x,
+            y: this.sprite.y,
+          },
+          {
+            x: this.moveTarget.x,
+            y: this.moveTarget.y,
+          }
+        )
+        const velocityVector = new Phaser.Math.Vector2()
+        this.game.physics.velocityFromRotation(angle, Constants.FISH_SPEED, velocityVector)
+        this.setVelocity(velocityVector.x, velocityVector.y)
+      }
+    }
   }
 
   setFlipX(flipX: boolean) {
@@ -135,7 +212,7 @@ export class Fish {
       }
     )
     ball.shoot(angle)
-    this.scene.time.delayedCall(100, () => {
+    this.game.time.delayedCall(500, () => {
       this.ballCollider.active = true
     })
   }
