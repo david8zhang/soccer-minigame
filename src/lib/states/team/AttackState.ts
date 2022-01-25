@@ -5,7 +5,7 @@ import { State } from '../StateMachine'
 import { PlayerStates } from '../StateTypes'
 
 export class AttackState extends State {
-  execute(team: Team, game: Game) {
+  enter(team: Team, game: Game) {
     team.fieldPlayers.forEach((fish: Fish) => {
       if (fish.getCurrentState() !== PlayerStates.PLAYER_CONTROL) {
         if (fish.hasBall(game.ball)) {

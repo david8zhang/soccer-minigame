@@ -3,10 +3,7 @@ import { BestSupportingSpotUtil } from '~/utils/BestSupportingSpotUtil'
 import { Constants } from '~/utils/Constants'
 import { Cursor } from './Cursor'
 import { Fish } from './Fish'
-import { StateMachine } from './states/StateMachine'
 import { PlayerStates, TeamStates } from './states/StateTypes'
-import { AttackState } from './states/team/AttackState'
-import { DefendState } from './states/team/DefendState'
 import { Team } from './Team'
 
 export class Player extends Team {
@@ -75,6 +72,7 @@ export class Player extends Team {
       const supportingFish = this.fieldPlayers.find((f: Fish) => f !== fishWithBall)
       if (supportingFish) {
         fishWithBall.kickBall(this.game.ball, supportingFish)
+        supportingFish.setState(PlayerStates.RECEIVE_PASS)
         const timeEvent = this.game.time.addEvent({
           repeat: -1,
           delay: 10,

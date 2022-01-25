@@ -8,6 +8,7 @@ import { SupportState } from './states/player/SupportState'
 import { WaitState } from './states/player/WaitState'
 import { Team } from './Team'
 import { DribbleState } from './states/player/DribbleState'
+import { ReceivePassState } from './states/player/ReceivePassState'
 
 export interface FishConfig {
   position: {
@@ -77,6 +78,7 @@ export class Fish {
         [PlayerStates.WAIT]: new WaitState(),
         [PlayerStates.PLAYER_CONTROL]: new PlayerControlState(),
         [PlayerStates.DRIBBLE]: new DribbleState(),
+        [PlayerStates.RECEIVE_PASS]: new ReceivePassState(),
       },
       [this, this.team]
     )

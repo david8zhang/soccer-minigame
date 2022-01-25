@@ -3,9 +3,11 @@ export enum PlayerStates {
   WAIT = 'Wait',
   SUPPORT = 'Support',
   DRIBBLE = 'Dribble',
+  RECEIVE_PASS = 'ReceivePass',
 }
 
 export enum TeamStates {
   ATTACKING = 'Attacking',
   DEFENDING = 'Defending',
+  KICKOFF = 'Kickoff',
 }

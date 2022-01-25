@@ -1,5 +1,6 @@
 import Game, { Side } from '~/scenes/Game'
 import { Constants } from '~/utils/Constants'
+import { Ball } from './Ball'
 import { Fish } from './Fish'
 import { Goal } from './Goal'
 import { StateMachine } from './states/StateMachine'
@@ -24,6 +25,10 @@ export abstract class Team {
       },
       [this, this.game]
     )
+  }
+
+  getBall(): Ball {
+    return this.game.ball
   }
 
   createFieldPlayers(
