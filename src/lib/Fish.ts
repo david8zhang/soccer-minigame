@@ -9,6 +9,7 @@ import { WaitState } from './states/player/WaitState'
 import { Team } from './Team'
 import { DribbleState } from './states/player/DribbleState'
 import { ReceivePassState } from './states/player/ReceivePassState'
+import { ReturnToHome } from './states/player/ReturnToHomeState'
 
 export interface FishConfig {
   position: {
@@ -36,6 +37,7 @@ export class Fish {
 
   // Rectangle used by AI to do steering
   public markerRectangle: Phaser.Geom.Rectangle
+  public homeRegionId: number = 0
 
   constructor(fishConfig: FishConfig, game: Game) {
     const { position, side, texture, flipX, team } = fishConfig
@@ -79,9 +81,18 @@ export class Fish {
         [PlayerStates.PLAYER_CONTROL]: new PlayerControlState(),
         [PlayerStates.DRIBBLE]: new DribbleState(),
         [PlayerStates.RECEIVE_PASS]: new ReceivePassState(),
+        [PlayerStates.RETURN_TO_HOME]: new ReturnToHome(),
       },
       [this, this.team]
     )
+  }
+
+  setHomeRegionId(id: number) {
+    this.homeRegionId = id
+  }
+
+  getHomeRegion() {
+    return this.game.getZoneForZoneId(this.homeRegionId)
   }
 
   setState(state: string) {
@@ -164,7 +175,7 @@ export class Fish {
 
   takeBall(ball: Ball) {
     ball.setFishWithBall(this)
-    this.onGetBallListeners.forEach((listener) => listener())
+    this.onGetBallListeners.forEach((listener) => listener(this))
   }
 
   update() {

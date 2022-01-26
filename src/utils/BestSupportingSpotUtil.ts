@@ -3,18 +3,31 @@ import { Team } from '~/lib/Team'
 import Game from '~/scenes/Game'
 import { Constants } from './Constants'
 
+export interface ZoneConfig {
+  upperLeft: number
+  upperRight: number
+  lowerLeft: number
+  lowerRight: number
+}
+
 export class BestSupportingSpotUtil {
   static ABLE_TO_PASS = 5
   static ABLE_TO_SCORE_GOAL = 3
   static DISTANCE_TO_PLAYER = 2
   static OPTIMAL_DISTANCE = 300
 
-  static getBestSupportingSpotPlayer(game: Game) {
+  static getBestSupportingSpot(
+    game: Game,
+    zoneConfig: ZoneConfig
+  ): {
+    positions: { x: number; y: number }[]
+    bestPosition: { x: number; y: number }
+  } {
     const supportPositionCandidates: any[] = []
-    const upperLeftZone = game.getZoneForZoneId(4)
-    const lowerLeftZone = game.getZoneForZoneId(36)
-    const upperRightZone = game.getZoneForZoneId(6)
-    const lowerRightZone = game.getZoneForZoneId(38)
+    const upperLeftZone = game.getZoneForZoneId(zoneConfig.upperLeft)
+    const lowerLeftZone = game.getZoneForZoneId(zoneConfig.lowerLeft)
+    const upperRightZone = game.getZoneForZoneId(zoneConfig.upperRight)
+    const lowerRightZone = game.getZoneForZoneId(zoneConfig.lowerRight)
     if (upperRightZone && lowerLeftZone && upperLeftZone && lowerRightZone) {
       let startX = upperLeftZone?.centerPosition.x
       let endX = upperRightZone?.centerPosition.x

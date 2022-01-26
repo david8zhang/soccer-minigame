@@ -4,9 +4,14 @@ import { State } from '../StateMachine'
 import { PlayerStates } from '../StateTypes'
 
 export class DefendState extends State {
-  execute(team: Team) {
-    team.fieldPlayers.forEach((fish: Fish) => {
-      fish.setState(PlayerStates.WAIT)
+  enter(team: Team) {
+    const teamDefensivePositions = team.getDefensivePositions()
+    team.fieldPlayers.forEach((fish: Fish, index: number) => {
+      const defensiveHomeRegion = teamDefensivePositions[index]
+      if (fish.getCurrentState() !== PlayerStates.PLAYER_CONTROL) {
+        fish.setHomeRegionId(defensiveHomeRegion)
+        fish.setState(PlayerStates.RETURN_TO_HOME)
+      }
     })
   }
 }

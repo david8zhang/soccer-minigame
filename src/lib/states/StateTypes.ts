@@ -4,6 +4,9 @@ export enum PlayerStates {
   SUPPORT = 'Support',
   DRIBBLE = 'Dribble',
   RECEIVE_PASS = 'ReceivePass',
+  CHASE_BALL_STATE = 'ChaseBallState',
+  BLOCK_PASS_SATE = 'BlockPassState',
+  RETURN_TO_HOME = 'ReturnToHome',
 }
 
 export enum TeamStates {

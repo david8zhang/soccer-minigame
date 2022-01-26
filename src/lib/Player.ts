@@ -26,20 +26,31 @@ export class Player extends Team {
     this.listenKeyboardInputs()
   }
 
-  onPlayerGetBall() {
-    this.stateMachine.transition(TeamStates.ATTACKING)
-  }
-
   getSelectedFish() {
     return this.cursor.getSelectedFish()
   }
 
   getBestSupportingPosition() {
-    const { positions, bestPosition } = BestSupportingSpotUtil.getBestSupportingSpotPlayer(
-      this.game
+    const zoneConfig = {
+      upperRight: 6,
+      upperLeft: 4,
+      lowerRight: 38,
+      lowerLeft: 36,
+    }
+    const { positions, bestPosition } = BestSupportingSpotUtil.getBestSupportingSpot(
+      this.game,
+      zoneConfig
     )
     this.bestPositions = positions
     return bestPosition
+  }
+
+  public isOnCurrentFieldSide(position: { x: number; y: number }): boolean {
+    return position.x <= Constants.BG_WIDTH / 2
+  }
+
+  public getDefensivePositions(): number[] {
+    return Constants.PLAYER_DEFEND_POSITIONS
   }
 
   getEnemyTeam(): Team {
@@ -66,28 +77,6 @@ export class Player extends Team {
     this.cursor.selectFish(fish)
   }
 
-  passBall() {
-    const fishWithBall = this.game.ball.fishWithBall
-    if (fishWithBall && fishWithBall.side === Side.PLAYER) {
-      const supportingFish = this.fieldPlayers.find((f: Fish) => f !== fishWithBall)
-      if (supportingFish) {
-        fishWithBall.kickBall(this.game.ball, supportingFish)
-        supportingFish.setState(PlayerStates.RECEIVE_PASS)
-        const timeEvent = this.game.time.addEvent({
-          repeat: -1,
-          delay: 10,
-          callback: () => {
-            if (this.game.ball.fishWithBall === supportingFish) {
-              this.selectFish(supportingFish)
-              timeEvent.destroy()
-              fishWithBall.setVelocity(0, 0)
-            }
-          },
-        })
-      }
-    }
-  }
-
   stealBall() {
     const fish = this.getSelectedFish()
     if (fish) {
@@ -96,6 +85,11 @@ export class Player extends Team {
         fish.stealBall(this.game.ball)
       }
     }
+  }
+
+  public onPassCompleted(passingFish: Fish, receivingFish: Fish): void {
+    this.selectFish(receivingFish)
+    passingFish.setVelocity(0, 0)
   }
 
   updateTeamState() {

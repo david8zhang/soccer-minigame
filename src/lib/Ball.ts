@@ -12,6 +12,7 @@ export class Ball {
   public sprite: Phaser.Physics.Arcade.Sprite
   public currState: BallState = BallState.LOOSE
   public fishWithBall: Fish | null = null
+  public onChangedPossession: Function[] = []
 
   constructor(position: { x: number; y: number }, scene: Game) {
     this.scene = scene
@@ -29,9 +30,16 @@ export class Ball {
     return this.fishWithBall.side
   }
 
+  addOnChangedPossessionListener(listener: Function) {
+    this.onChangedPossession.push(listener)
+  }
+
   setFishWithBall(fishWithBall: Fish) {
     this.fishWithBall = fishWithBall
     this.currState = BallState.DRIBBLE
+    this.onChangedPossession.forEach((listener) => {
+      listener(fishWithBall)
+    })
   }
 
   shoot(angle: number) {

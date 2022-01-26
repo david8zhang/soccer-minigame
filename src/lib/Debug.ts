@@ -45,9 +45,10 @@ export class Debug {
   debugSupportingPositions() {
     this.bestPlayerSupportPositions.forEach((circle) => circle.destroy())
     this.bestPlayerSupportPositions = []
-    this.game.player.bestPositions.forEach((coordinates) => {
+    this.game.cpu.bestPositions.forEach((coordinates) => {
       const { x, y, radius } = coordinates
       const circle = this.game.add.circle(x, y, radius ? radius : 5, 0x00ff00)
+      circle.setVisible(this.isVisible)
       this.bestPlayerSupportPositions.push(circle)
     })
   }

@@ -1,12 +1,12 @@
 import Game, { Side } from '~/scenes/Game'
+import { BestSupportingSpotUtil } from '~/utils/BestSupportingSpotUtil'
 import { Constants } from '~/utils/Constants'
-import { StateMachine } from './states/StateMachine'
-import { TeamStates } from './states/StateTypes'
-import { AttackState } from './states/team/AttackState'
-import { DefendState } from './states/team/DefendState'
+import { Fish } from './Fish'
 import { Team } from './Team'
 
 export class CPU extends Team {
+  public bestPositions: { x: number; y: number; radius?: number }[] = []
+
   constructor(game: Game) {
     super(game)
     this.game = game
@@ -19,8 +19,12 @@ export class CPU extends Team {
       Constants.CPU_KICKOFF_POSITIONS
     )
   }
-  public onPlayerGetBall() {
-    this.stateMachine.transition(TeamStates.ATTACKING)
+
+  public getDefensivePositions(): number[] {
+    return Constants.CPU_DEFEND_POSITIONS
+  }
+  public isOnCurrentFieldSide(position: { x: number; y: number }): boolean {
+    return position.x > Constants.BG_WIDTH / 2
   }
   public getEnemyGoal() {
     return this.game.playerGoal
@@ -29,7 +33,19 @@ export class CPU extends Team {
     return this.game.cpuGoal
   }
   public getBestSupportingPosition() {
-    return { x: 0, y: 0 }
+    const zoneConfig = {
+      upperLeft: 1,
+      upperRight: 3,
+      lowerLeft: 33,
+      lowerRight: 35,
+    }
+    const result = BestSupportingSpotUtil.getBestSupportingSpot(this.game, zoneConfig)
+    this.bestPositions = result.positions
+    return result.bestPosition
+  }
+
+  public onPassCompleted(passingFish: Fish, receivingFish: Fish): void {
+    return
   }
   public getEnemyTeam() {
     return this.game.player
