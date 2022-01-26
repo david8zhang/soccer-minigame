@@ -40,11 +40,25 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
+    this.initWorldCollider()
     this.createField()
     this.createBall()
     this.createGoal()
     this.createTeams()
     this.initializeDebug()
+  }
+
+  initWorldCollider() {
+    this.physics.world.setBounds(
+      0,
+      0,
+      Constants.BG_WIDTH,
+      Constants.BG_HEIGHT,
+      true,
+      true,
+      true,
+      true
+    )
   }
 
   initializeDebug() {

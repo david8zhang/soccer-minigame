@@ -21,6 +21,11 @@ export class Ball {
     this.scene.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.setData('ref', this)
     this.sprite.setDepth(200)
+    this.sprite.body.bounce.setTo(0.5, 0.5)
+
+    const spriteBody = this.sprite.body as Phaser.Physics.Arcade.Body
+    spriteBody.setCollideWorldBounds(true)
+    spriteBody.onWorldBounds = true
   }
 
   get possessionSide() {

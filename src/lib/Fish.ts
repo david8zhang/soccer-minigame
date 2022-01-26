@@ -50,6 +50,12 @@ export class Fish {
     this.sprite = this.game.physics.add.sprite(x, y, texture).setDepth(100)
     this.game.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.setPushable(false)
+
+    // Configure world bounds collider
+    const spriteBody = this.sprite.body as Phaser.Physics.Arcade.Body
+    spriteBody.setCollideWorldBounds(true)
+    spriteBody.onWorldBounds = true
+
     if (flipX) {
       this.sprite.flipX = true
       this.flipX = true
