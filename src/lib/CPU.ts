@@ -44,9 +44,15 @@ export class CPU extends Team {
     return result.bestPosition
   }
 
+  public resetFieldPlayers(): void {
+    super.resetFieldPlayers(Constants.CPU_KICKOFF_POSITIONS)
+    this.fieldPlayers.forEach((player) => player.setFlipX(true))
+  }
+
   public onPassCompleted(passingFish: Fish, receivingFish: Fish): void {
     return
   }
+
   public getEnemyTeam() {
     return this.game.player
   }

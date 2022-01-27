@@ -6,6 +6,7 @@ import { Goal } from '~/lib/Goal'
 import { Debug } from '~/lib/Debug'
 import { CPU } from '~/lib/CPU'
 import { Player } from '~/lib/Player'
+import { TeamStates } from '~/lib/states/StateTypes'
 
 export enum Side {
   PLAYER,
@@ -118,7 +119,8 @@ export default class Game extends Phaser.Scene {
 
   reset() {
     this.ball.reset()
-    this.scene.resume()
+    this.cpu.setState(TeamStates.KICKOFF)
+    this.player.setState(TeamStates.KICKOFF)
   }
 
   createGoal() {

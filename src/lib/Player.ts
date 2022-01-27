@@ -100,6 +100,10 @@ export class Player extends Team {
     }
   }
 
+  public resetFieldPlayers(): void {
+    super.resetFieldPlayers(Constants.PLAYER_KICKOFF_POSITIONS)
+  }
+
   public getEnemyGoal() {
     return this.game.cpuGoal
   }

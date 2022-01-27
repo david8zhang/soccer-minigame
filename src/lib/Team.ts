@@ -63,11 +63,26 @@ export abstract class Team {
             },
             this.game
           )
+          fish.setHomeRegionId(zoneId)
           players.push(fish)
         }
       }
     }
     return players
+  }
+
+  public setState(state: TeamStates) {
+    this.stateMachine.transition(state)
+  }
+
+  public resetFieldPlayers(positions: number[]) {
+    this.fieldPlayers.forEach((fish: Fish, index: number) => {
+      const zoneId = positions[index]
+      const zone = this.game.getZoneForZoneId(zoneId)
+      if (zone) {
+        fish.sprite.setPosition(zone.centerPosition.x, zone.centerPosition.y)
+      }
+    })
   }
 
   public passBall() {

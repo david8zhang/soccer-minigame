@@ -12,15 +12,15 @@ export class Goal {
     this.game.physics.world.enableBody(this.sprite, Phaser.Physics.Arcade.DYNAMIC_BODY)
     this.sprite.body.setSize(this.sprite.width * 0.2, this.sprite.height * 0.9)
     this.ballCollider = this.game.physics.add.overlap(this.sprite, this.game.ball.sprite, () => {
-      if (this.checkIfBallIsFullyInsideGoal()) {
-        this.game.ball.sprite.setVisible(false)
-        this.game.scene.pause()
-        const timeout = setTimeout(() => {
-          this.game.reset()
-          clearTimeout(timeout)
-        }, 1000)
-      }
+      this.onScore()
     })
+  }
+
+  onScore() {
+    if (this.checkIfBallIsFullyInsideGoal()) {
+      this.game.ball.sprite.setVisible(false)
+      this.game.reset()
+    }
   }
 
   checkIfBallIsFullyInsideGoal() {
