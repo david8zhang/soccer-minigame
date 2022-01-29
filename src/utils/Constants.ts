@@ -18,6 +18,9 @@ export class Constants {
   static STEAL_DISTANCE: number = 50
   static PASS_DISTANCE: number = 150
 
+  // AI Attributes
+  static CPU_WILL_STEAL_DISTANCE: number = 250
+
   // Team attributes
   static NUM_FIELD_PLAYERS_PER_TEAM = 2
   static CPU_KICKOFF_POSITIONS = [13, 29]

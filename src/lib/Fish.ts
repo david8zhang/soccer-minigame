@@ -10,6 +10,7 @@ import { Team } from './Team'
 import { DribbleState } from './states/player/DribbleState'
 import { ReceivePassState } from './states/player/ReceivePassState'
 import { ReturnToHome } from './states/player/ReturnToHomeState'
+import { ChaseBall } from './states/player/ChaseBallState'
 
 export interface FishConfig {
   position: {
@@ -88,6 +89,7 @@ export class Fish {
         [PlayerStates.DRIBBLE]: new DribbleState(),
         [PlayerStates.RECEIVE_PASS]: new ReceivePassState(),
         [PlayerStates.RETURN_TO_HOME]: new ReturnToHome(),
+        [PlayerStates.CHASE_BALL_STATE]: new ChaseBall(),
       },
       [this, this.team]
     )
