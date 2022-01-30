@@ -3,6 +3,7 @@ import { Constants } from '~/utils/Constants'
 import { Ball } from './Ball'
 import { Fish } from './Fish'
 import { Goal } from './Goal'
+import { GoalKeeper } from './GoalKeeper'
 import { StateMachine } from './states/StateMachine'
 import { PlayerStates, TeamStates } from './states/StateTypes'
 import { AttackState } from './states/team/AttackState'
@@ -14,6 +15,7 @@ export abstract class Team {
   public side: Side = Side.NONE
   public fieldPlayers: Fish[] = []
   public stateMachine!: StateMachine
+  public goalKeeper!: GoalKeeper
   constructor(game: Game) {
     this.game = game
     this.stateMachine = new StateMachine(
@@ -39,6 +41,26 @@ export abstract class Team {
     return this.game.ball
   }
 
+  createGoalKeeper(zoneId: number, playerTexture: string, side: Side) {
+    const zone = this.game.getZoneForZoneId(zoneId)!
+    const { centerPosition } = zone
+    const fish = new Fish(
+      {
+        position: centerPosition,
+        side: side,
+        texture: playerTexture,
+        flipX: side == Side.COMPUTER,
+        team: this,
+      },
+      this.game
+    )
+    return new GoalKeeper(this.game, {
+      team: this,
+      fish: fish,
+      homeRegionId: zoneId,
+    })
+  }
+
   createFieldPlayers(
     numFieldPlayers: number,
     playerTexture: string,
@@ -55,7 +77,7 @@ export abstract class Team {
           const { centerPosition } = zone
           const fish = new Fish(
             {
-              position: { x: centerPosition.x, y: centerPosition.y },
+              position: centerPosition,
               side: side,
               texture: playerTexture,
               flipX: side == Side.COMPUTER,
@@ -70,6 +92,8 @@ export abstract class Team {
     }
     return players
   }
+
+  public abstract reset(): void
 
   public setState(state: TeamStates) {
     this.stateMachine.transition(state)
@@ -89,7 +113,6 @@ export abstract class Team {
     const fishWithBall = this.game.ball.fishWithBall
     if (fishWithBall && fishWithBall.team.side === this.side) {
       const supportingFish = this.fieldPlayers.find((f: Fish) => f !== fishWithBall)
-      console.log(this.side, supportingFish?.team.side)
       if (supportingFish) {
         fishWithBall.kickBall(this.game.ball, supportingFish)
         supportingFish.setState(PlayerStates.RECEIVE_PASS)
@@ -128,5 +151,8 @@ export abstract class Team {
     this.fieldPlayers.forEach((fish: Fish) => {
       fish.update()
     })
+    if (this.goalKeeper) {
+      this.goalKeeper.update()
+    }
   }
 }

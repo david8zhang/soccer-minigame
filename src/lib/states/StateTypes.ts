@@ -5,7 +5,7 @@ export enum PlayerStates {
   DRIBBLE = 'Dribble',
   RECEIVE_PASS = 'ReceivePass',
   CHASE_BALL_STATE = 'ChaseBallState',
-  BLOCK_PASS_SATE = 'BlockPassState',
+  BLOCK_GOAL_STATE = 'BlockGoalState',
   RETURN_TO_HOME = 'ReturnToHome',
 }
 

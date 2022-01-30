@@ -73,12 +73,12 @@ export class Ball {
   }
 
   reset() {
-    this.fishWithBall = null
-    this.currState = BallState.LOOSE
     const ballXPos = Constants.BG_WIDTH / 2
     const ballYPos = Constants.BG_HEIGHT / 2
-    this.sprite.setVelocity(0)
-    this.sprite.setVisible(true)
     this.sprite.setPosition(ballXPos, ballYPos)
+    this.sprite.setVelocity(0)
+    this.fishWithBall = null
+    this.currState = BallState.LOOSE
+    this.sprite.setVisible(true)
   }
 }

@@ -67,6 +67,10 @@ export class Debug {
     }
     this.game.cpu.fieldPlayers.forEach(showStateText)
     this.game.player.fieldPlayers.forEach(showStateText)
+
+    if (this.game.player.goalKeeper) {
+      showStateText(this.game.player.goalKeeper.fish)
+    }
   }
 
   setVisible(isVisible: boolean) {

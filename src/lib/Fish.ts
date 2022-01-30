@@ -11,6 +11,7 @@ import { DribbleState } from './states/player/DribbleState'
 import { ReceivePassState } from './states/player/ReceivePassState'
 import { ReturnToHome } from './states/player/ReturnToHomeState'
 import { ChaseBall } from './states/player/ChaseBallState'
+import { BlockGoalState } from './states/player/BlockGoalState'
 
 export interface FishConfig {
   position: {
@@ -90,6 +91,7 @@ export class Fish {
         [PlayerStates.RECEIVE_PASS]: new ReceivePassState(),
         [PlayerStates.RETURN_TO_HOME]: new ReturnToHome(),
         [PlayerStates.CHASE_BALL_STATE]: new ChaseBall(),
+        [PlayerStates.BLOCK_GOAL_STATE]: new BlockGoalState(),
       },
       [this, this.team]
     )
@@ -125,6 +127,17 @@ export class Fish {
 
   addOnGetBallListener(listener: Function) {
     this.onGetBallListeners.push(listener)
+  }
+
+  canStealBall(ball: Ball) {
+    const fishWithBall = ball.fishWithBall
+    if (fishWithBall && fishWithBall !== this) {
+      const distance = Constants.getDistanceBetweenObjects(this.sprite, fishWithBall.sprite)
+      if (distance < Constants.STEAL_DISTANCE) {
+        return true
+      }
+    }
+    return false
   }
 
   stealBall(ball: Ball) {

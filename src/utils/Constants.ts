@@ -20,12 +20,16 @@ export class Constants {
 
   // AI Attributes
   static CPU_WILL_STEAL_DISTANCE: number = 250
+  static CPU_WILL_BLOCK_DISTANCE: number = 500
+  static CPU_WILL_SHOOT_DISTANCE: number = 300
 
   // Team attributes
   static NUM_FIELD_PLAYERS_PER_TEAM = 2
   static CPU_KICKOFF_POSITIONS = [13, 29]
   static CPU_ATTACK_POSITIONS = [10, 21]
   static CPU_DEFEND_POSITIONS = [14, 30]
+  static CPU_GOALKEEPER_POSITION = 23
+  static PLAYER_GOALKEEPER_POSITION = 16
   static PLAYER_KICKOFF_POSITIONS = [10, 26]
   static PLAYER_ATTACK_POSITIONS = [13, 18]
   static PLAYER_DEFEND_POSITIONS = [9, 25]

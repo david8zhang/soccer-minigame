@@ -69,19 +69,41 @@ export class AttackState extends State {
     return distanceToClosestFish < Constants.PASS_DISTANCE
   }
 
+  shouldShoot(fish: Fish, team: Team) {
+    const distanceToEnemyGoal = Constants.getDistanceBetweenObjects(
+      fish.sprite,
+      team.getEnemyGoal().sprite
+    )
+    if (distanceToEnemyGoal < Constants.CPU_WILL_SHOOT_DISTANCE) {
+      return true
+    }
+    return false
+  }
+
+  assignFishOffensiveState(fish: Fish, team: Team) {
+    if (fish.getCurrentState() === PlayerStates.PLAYER_CONTROL) {
+      return
+    }
+    const ball = team.getBall()
+    if (fish.hasBall(ball)) {
+      if (this.shouldShoot(fish, team)) {
+        fish.kickBall(ball, team.getEnemyGoal())
+        return
+      }
+      if (this.shouldPass(fish, team) && this.isPassSafe(fish, team)) {
+        team.passBall()
+        return
+      }
+    } else {
+      if (fish.getCurrentState() !== PlayerStates.RECEIVE_PASS) {
+        fish.setState(PlayerStates.SUPPORT)
+      }
+    }
+  }
+
   execute(team: Team) {
     team.fieldPlayers.forEach((fish: Fish) => {
-      if (fish.getCurrentState() !== PlayerStates.PLAYER_CONTROL) {
-        if (fish.hasBall(team.getBall())) {
-          if (this.shouldPass(fish, team) && this.isPassSafe(fish, team)) {
-            team.passBall()
-          }
-        } else {
-          if (fish.getCurrentState() !== PlayerStates.RECEIVE_PASS) {
-            fish.setState(PlayerStates.SUPPORT)
-          }
-        }
-      }
+      this.assignFishOffensiveState(fish, team)
     })
   }
 }

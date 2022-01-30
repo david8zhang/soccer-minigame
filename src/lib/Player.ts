@@ -21,9 +21,19 @@ export class Player extends Team {
       this.side,
       Constants.PLAYER_KICKOFF_POSITIONS
     )
+    this.goalKeeper = this.createGoalKeeper(
+      Constants.PLAYER_GOALKEEPER_POSITION,
+      'fish4',
+      Side.PLAYER
+    )
     this.cursor = new Cursor({ x: 0, y: 0 }, this.game)
     this.selectFish(this.fieldPlayers[this.selectedPlayerIndex])
     this.listenKeyboardInputs()
+    this.game.ball.addOnChangedPossessionListener((fish: Fish) => {
+      if (fish.side === this.side && fish !== this.goalKeeper.fish) {
+        this.selectFish(fish)
+      }
+    })
   }
 
   getSelectedFish() {
@@ -88,7 +98,9 @@ export class Player extends Team {
   }
 
   public onPassCompleted(passingFish: Fish, receivingFish: Fish): void {
-    this.selectFish(receivingFish)
+    if (receivingFish !== this.goalKeeper.fish) {
+      this.selectFish(receivingFish)
+    }
     passingFish.setVelocity(0, 0)
   }
 
@@ -100,8 +112,10 @@ export class Player extends Team {
     }
   }
 
-  public resetFieldPlayers(): void {
+  public reset(): void {
+    this.stateMachine.transition(TeamStates.KICKOFF)
     super.resetFieldPlayers(Constants.PLAYER_KICKOFF_POSITIONS)
+    this.selectFish(this.fieldPlayers[0])
   }
 
   public getEnemyGoal() {
@@ -116,9 +130,6 @@ export class Player extends Team {
     super.update()
     this.cursor.follow()
     this.handlePlayerMovement()
-    this.fieldPlayers.forEach((fish: Fish) => {
-      fish.update()
-    })
   }
 
   listenKeyboardInputs() {

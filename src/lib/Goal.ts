@@ -18,7 +18,7 @@ export class Goal {
 
   onScore() {
     if (this.checkIfBallIsFullyInsideGoal()) {
-      this.game.ball.sprite.setVisible(false)
+      console.log('Should reset!')
       this.game.reset()
     }
   }

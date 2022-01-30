@@ -18,6 +18,7 @@ export class CPU extends Team {
       this.side,
       Constants.CPU_KICKOFF_POSITIONS
     )
+    this.goalKeeper = this.createGoalKeeper(Constants.CPU_GOALKEEPER_POSITION, 'fish2', this.side)
   }
 
   public getDefensivePositions(): number[] {
@@ -32,6 +33,12 @@ export class CPU extends Team {
   public getCurrentGoal() {
     return this.game.cpuGoal
   }
+
+  reset() {
+    super.resetFieldPlayers(Constants.CPU_KICKOFF_POSITIONS)
+    this.fieldPlayers.forEach((player) => player.setFlipX(true))
+  }
+
   public getBestSupportingPosition() {
     const zoneConfig = {
       upperLeft: 1,
@@ -42,11 +49,6 @@ export class CPU extends Team {
     const result = BestSupportingSpotUtil.getBestSupportingSpot(this.game, zoneConfig)
     this.bestPositions = result.positions
     return result.bestPosition
-  }
-
-  public resetFieldPlayers(): void {
-    super.resetFieldPlayers(Constants.CPU_KICKOFF_POSITIONS)
-    this.fieldPlayers.forEach((player) => player.setFlipX(true))
   }
 
   public onPassCompleted(passingFish: Fish, receivingFish: Fish): void {

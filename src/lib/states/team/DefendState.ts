@@ -1,3 +1,4 @@
+import { CPU } from '~/lib/CPU'
 import { Fish } from '~/lib/Fish'
 import { Player } from '~/lib/Player'
 import { Team } from '~/lib/Team'
@@ -5,15 +6,21 @@ import { Constants } from '~/utils/Constants'
 import { State } from '../StateMachine'
 import { PlayerStates } from '../StateTypes'
 
+enum DefenseRegions {
+  UPPER = 'upper',
+  LOWER = 'lower',
+}
+
 export class DefendState extends State {
-  withinStealRange(team: Team, fish: Fish) {
+  withinChaseRange(team: Team, fish: Fish) {
     const ball = team.getBall()
     const fishWithBall = ball.fishWithBall
     if (fishWithBall) {
       const distance = Constants.getDistanceBetweenObjects(fish.sprite, fishWithBall.sprite)
-      if (distance < Constants.CPU_WILL_STEAL_DISTANCE) {
-        return true
-      }
+      return (
+        distance < Constants.CPU_WILL_STEAL_DISTANCE &&
+        team.isOnCurrentFieldSide(fishWithBall.sprite)
+      )
     }
     return false
   }
@@ -28,15 +35,42 @@ export class DefendState extends State {
       }
     })
   }
-  execute(team: Team) {
-    team.fieldPlayers.forEach((fish: Fish, index: number) => {
-      if (fish.getCurrentState() !== PlayerStates.PLAYER_CONTROL) {
-        if (this.withinStealRange(team, fish)) {
-          fish.setState(PlayerStates.CHASE_BALL_STATE)
+
+  assignFishDefensiveState(fish: Fish, team: Team) {
+    const fishWithBall = team.getBall().fishWithBall
+    if (fish.getCurrentState() == PlayerStates.PLAYER_CONTROL) {
+      return
+    }
+    if (!fishWithBall) {
+      return
+    }
+
+    const defensiveRegion =
+      fish.getHomeRegion()!.id < 20 ? DefenseRegions.UPPER : DefenseRegions.LOWER
+    const fishWithBallRegion =
+      fishWithBall.sprite.y < Constants.BG_HEIGHT / 2 ? DefenseRegions.UPPER : DefenseRegions.LOWER
+    if (defensiveRegion === fishWithBallRegion) {
+      if (this.withinChaseRange(team, fish)) {
+        const ball = team.getBall()
+        if (fish.canStealBall(ball)) {
+          fish.stealBall(ball)
         } else {
-          fish.setState(PlayerStates.RETURN_TO_HOME)
+          fish.setState(PlayerStates.CHASE_BALL_STATE)
         }
+        return
+      } else {
+        fish.setState(PlayerStates.BLOCK_GOAL_STATE)
+        return
       }
+    } else {
+      fish.setState(PlayerStates.RETURN_TO_HOME)
+      return
+    }
+  }
+
+  execute(team: Team) {
+    team.fieldPlayers.forEach((fish: Fish) => {
+      this.assignFishDefensiveState(fish, team)
     })
   }
 }

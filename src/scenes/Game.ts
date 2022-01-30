@@ -119,8 +119,8 @@ export default class Game extends Phaser.Scene {
 
   reset() {
     this.ball.reset()
-    this.cpu.setState(TeamStates.KICKOFF)
-    this.player.setState(TeamStates.KICKOFF)
+    this.cpu.reset()
+    this.player.reset()
   }
 
   createGoal() {
