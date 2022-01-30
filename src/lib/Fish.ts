@@ -37,6 +37,8 @@ export class Fish {
   public stateMachine: StateMachine
   public onGetBallListeners: Function[] = []
 
+  public speed: number = Constants.FISH_SPEED
+
   // Rectangle used by AI to do steering
   public markerRectangle: Phaser.Geom.Rectangle
   public homeRegionId: number = 0
@@ -131,7 +133,7 @@ export class Fish {
 
   canStealBall(ball: Ball) {
     const fishWithBall = ball.fishWithBall
-    if (fishWithBall && fishWithBall !== this) {
+    if (fishWithBall && fishWithBall !== this && !this.isStunned) {
       const distance = Constants.getDistanceBetweenObjects(this.sprite, fishWithBall.sprite)
       if (distance < Constants.STEAL_DISTANCE) {
         return true
@@ -159,6 +161,10 @@ export class Fish {
       this.sprite.setVelocity(prevVelocity.x, prevVelocity.y)
       this.ballCollider.active = true
     })
+  }
+
+  setSpeed(speed: number) {
+    this.speed = speed
   }
 
   setVelocity(xVelocity: number, yVelocity: number) {
@@ -222,7 +228,7 @@ export class Fish {
           }
         )
         const velocityVector = new Phaser.Math.Vector2()
-        this.game.physics.velocityFromRotation(angle, Constants.FISH_SPEED, velocityVector)
+        this.game.physics.velocityFromRotation(angle, this.speed, velocityVector)
         this.setVelocity(velocityVector.x, velocityVector.y)
       }
     }
