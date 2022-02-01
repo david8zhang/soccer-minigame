@@ -47,9 +47,8 @@ export class Ball {
     })
   }
 
-  shoot(angle: number) {
+  shoot(angle: number, speedMultiplier: number = 2) {
     if (this.fishWithBall) {
-      const speedMultiplier = 2
       const velocityVector = new Phaser.Math.Vector2(0, 0)
       this.scene.physics.velocityFromRotation(angle, Constants.FISH_SPEED, velocityVector)
       this.sprite.setVelocity(

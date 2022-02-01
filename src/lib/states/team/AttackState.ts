@@ -87,7 +87,7 @@ export class AttackState extends State {
     const ball = team.getBall()
     if (fish.hasBall(ball)) {
       if (this.shouldShoot(fish, team)) {
-        fish.kickBall(ball, team.getEnemyGoal())
+        fish.kickBall(ball, team.getEnemyGoal(), Constants.SHOOT_SPEED_MULTIPLIER)
         return
       }
       if (this.shouldPass(fish, team) && this.isPassSafe(fish, team)) {

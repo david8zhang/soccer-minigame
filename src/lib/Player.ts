@@ -142,7 +142,11 @@ export class Player extends Team {
         case 'KeyS': {
           const selectedPlayer = this.getSelectedFish()
           if (selectedPlayer && selectedPlayer.hasBall(this.game.ball)) {
-            selectedPlayer.kickBall(this.game.ball, this.game.cpuGoal)
+            selectedPlayer.kickBall(
+              this.game.ball,
+              this.game.cpuGoal,
+              Constants.SHOOT_SPEED_MULTIPLIER
+            )
           }
           break
         }

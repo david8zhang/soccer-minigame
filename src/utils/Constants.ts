@@ -14,7 +14,7 @@ export class Constants {
 
   // Fish attributes
   static FISH_SPEED: number = 250
-  static SHOOT_VELOCITY: number = 750
+  static SHOOT_SPEED_MULTIPLIER: number = 4
   static STEAL_DISTANCE: number = 50
   static PASS_DISTANCE: number = 150
 

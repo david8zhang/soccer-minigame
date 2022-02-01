@@ -239,7 +239,11 @@ export class Fish {
     this.sprite.flipX = flipX
   }
 
-  kickBall(ball: Ball, target: { sprite: Phaser.Physics.Arcade.Sprite }) {
+  kickBall(
+    ball: Ball,
+    target: { sprite: Phaser.Physics.Arcade.Sprite },
+    speedMultiplier: number = 2
+  ) {
     this.ballCollider.active = false
     const angle = Phaser.Math.Angle.BetweenPoints(
       {
@@ -251,7 +255,7 @@ export class Fish {
         y: target.sprite.y,
       }
     )
-    ball.shoot(angle)
+    ball.shoot(angle, speedMultiplier)
     this.game.time.delayedCall(500, () => {
       this.ballCollider.active = true
     })
