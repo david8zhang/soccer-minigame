@@ -10,11 +10,12 @@ export interface ZoneConfig {
   lowerRight: number
 }
 
-export class BestSupportingSpotUtil {
-  static ABLE_TO_PASS = 5
-  static ABLE_TO_SCORE_GOAL = 3
-  static DISTANCE_TO_PLAYER = 2
-  static OPTIMAL_DISTANCE = 300
+export class BestSpotUtil {
+  // Support
+  static ABLE_TO_PASS_SUPPORT = 5
+  static ABLE_TO_SCORE_GOAL_SUPPORT = 3
+  static DISTANCE_TO_PLAYER_SUPPORT = 2
+  static OPTIMAL_DISTANCE_SUPPORT = 400
 
   static getBestSupportingSpot(
     game: Game,
@@ -61,16 +62,17 @@ export class BestSupportingSpotUtil {
     }
     let currScore = 0
     if (this._canPassToSpot(spot, fishWithBall, team.getEnemyTeam())) {
-      currScore += this.ABLE_TO_PASS
+      currScore += this.ABLE_TO_PASS_SUPPORT
     }
-    if (this._canScoreGoal(spot, team.getEnemyTeam())) {
-      currScore += this.ABLE_TO_SCORE_GOAL
+    if (this.canScoreGoal(spot, team.getEnemyTeam())) {
+      currScore += this.ABLE_TO_SCORE_GOAL_SUPPORT
     }
     const distanceToFishWithBall = Constants.getDistanceBetweenObjects(fishWithBall.sprite, spot)
-    const diff = Math.abs(this.OPTIMAL_DISTANCE - distanceToFishWithBall)
-    if (distanceToFishWithBall < this.OPTIMAL_DISTANCE) {
+    const diff = Math.abs(this.OPTIMAL_DISTANCE_SUPPORT - distanceToFishWithBall)
+    if (distanceToFishWithBall < this.OPTIMAL_DISTANCE_SUPPORT) {
       currScore +=
-        this.DISTANCE_TO_PLAYER * ((this.OPTIMAL_DISTANCE - diff) / this.OPTIMAL_DISTANCE)
+        this.DISTANCE_TO_PLAYER_SUPPORT *
+        ((this.OPTIMAL_DISTANCE_SUPPORT - diff) / this.OPTIMAL_DISTANCE_SUPPORT)
     }
     return currScore
   }
@@ -93,7 +95,7 @@ export class BestSupportingSpotUtil {
     return true
   }
 
-  private static _canScoreGoal(spot: { x: number; y: number }, enemyTeam: Team) {
+  public static canScoreGoal(spot: { x: number; y: number }, enemyTeam: Team) {
     const goal = enemyTeam.getCurrentGoal()
     const ray = new Phaser.Geom.Line()
     const angle = Phaser.Math.Angle.BetweenPoints(spot, goal.sprite)
@@ -107,6 +109,4 @@ export class BestSupportingSpotUtil {
     }
     return true
   }
-
-  static getBestSupportingSpotCPU(game: Game) {}
 }

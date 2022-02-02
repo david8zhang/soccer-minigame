@@ -1,5 +1,5 @@
 import Game, { Side } from '~/scenes/Game'
-import { BestSupportingSpotUtil } from '~/utils/BestSupportingSpotUtil'
+import { BestSpotUtil } from '~/utils/BestSpotUtil'
 import { Constants } from '~/utils/Constants'
 import { Fish } from './Fish'
 import { Team } from './Team'
@@ -46,7 +46,7 @@ export class CPU extends Team {
       lowerLeft: 33,
       lowerRight: 35,
     }
-    const result = BestSupportingSpotUtil.getBestSupportingSpot(this.game, zoneConfig)
+    const result = BestSpotUtil.getBestSupportingSpot(this.game, zoneConfig)
     this.bestPositions = result.positions
     return result.bestPosition
   }

@@ -1,4 +1,5 @@
 import Game, { Side } from '~/scenes/Game'
+import { ZoneConfig } from '~/utils/BestSpotUtil'
 import { Constants } from '~/utils/Constants'
 import { Ball } from './Ball'
 import { Fish } from './Fish'

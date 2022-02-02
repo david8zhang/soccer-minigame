@@ -1,6 +1,7 @@
 import { Fish } from '~/lib/Fish'
 import { Team } from '~/lib/Team'
 import Game from '~/scenes/Game'
+import { BestSpotUtil } from '~/utils/BestSpotUtil'
 import { Constants } from '~/utils/Constants'
 import { State } from '../StateMachine'
 import { PlayerStates } from '../StateTypes'
@@ -70,14 +71,18 @@ export class AttackState extends State {
   }
 
   shouldShoot(fish: Fish, team: Team) {
+    const currPosition = {
+      x: fish.sprite.x,
+      y: fish.sprite.y,
+    }
     const distanceToEnemyGoal = Constants.getDistanceBetweenObjects(
       fish.sprite,
       team.getEnemyGoal().sprite
     )
-    if (distanceToEnemyGoal < Constants.CPU_WILL_SHOOT_DISTANCE) {
-      return true
-    }
-    return false
+    return (
+      BestSpotUtil.canScoreGoal(currPosition, team.getEnemyTeam()) &&
+      distanceToEnemyGoal < Constants.CPU_WILL_SHOOT_DISTANCE
+    )
   }
 
   assignFishOffensiveState(fish: Fish, team: Team) {
