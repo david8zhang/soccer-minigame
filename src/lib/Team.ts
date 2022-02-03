@@ -110,6 +110,10 @@ export abstract class Team {
     })
   }
 
+  public getGoalKeeperMarkerRectangle() {
+    return this.goalKeeper.fish.markerRectangle
+  }
+
   public passBall() {
     const fishWithBall = this.game.ball.fishWithBall
     if (fishWithBall && fishWithBall.team.side === this.side) {

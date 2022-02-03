@@ -21,7 +21,7 @@ export class Constants {
   // AI Attributes
   static CPU_WILL_STEAL_DISTANCE: number = 250
   static CPU_WILL_BLOCK_DISTANCE: number = 500
-  static CPU_WILL_SHOOT_DISTANCE: number = 750
+  static CPU_WILL_SHOOT_DISTANCE: number = 500
 
   // Team attributes
   static NUM_FIELD_PLAYERS_PER_TEAM = 2

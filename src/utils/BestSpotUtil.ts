@@ -107,6 +107,9 @@ export class BestSpotUtil {
         return false
       }
     }
+    if (Phaser.Geom.Intersects.LineToRectangle(ray, enemyTeam.goalKeeper.fish.markerRectangle)) {
+      return false
+    }
     return true
   }
 }

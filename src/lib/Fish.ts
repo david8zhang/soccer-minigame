@@ -211,13 +211,27 @@ export class Fish {
     this.moveTowardsTarget()
   }
 
+  getBlockingEnemyFish(angle: number) {
+    const enemyTeam = this.team.getEnemyTeam()
+    const enemyPlayers = enemyTeam.fieldPlayers
+    const ray = new Phaser.Geom.Line()
+    const distanceToMoveTarget = Constants.getDistanceBetweenObjects(this.sprite, this.moveTarget!)
+    Phaser.Geom.Line.SetToAngle(ray, this.sprite.x, this.sprite.y, angle, distanceToMoveTarget)
+    for (let i = 0; i < enemyPlayers.length; i++) {
+      const player = enemyPlayers[i]
+      if (Phaser.Geom.Intersects.LineToRectangle(ray, player.markerRectangle)) {
+        return player
+      }
+    }
+  }
+
   moveTowardsTarget() {
     if (this.moveTarget) {
       const distance = Constants.getDistanceBetweenObjects(this.sprite, this.moveTarget)
       if (Math.abs(distance) < 5) {
         this.setVelocity(0, 0)
       } else {
-        const angle = Phaser.Math.Angle.BetweenPoints(
+        let angle = Phaser.Math.Angle.BetweenPoints(
           {
             x: this.sprite.x,
             y: this.sprite.y,
@@ -227,6 +241,12 @@ export class Fish {
             y: this.moveTarget.y,
           }
         )
+        // Avoid enemy if there is one in the vicinity
+        const blockingEnemyFish = this.getBlockingEnemyFish(angle)
+        if (blockingEnemyFish) {
+          console.log(angle)
+          angle = this.getBestAngleAwayFromPlayerFish(blockingEnemyFish, this.moveTarget)
+        }
         const velocityVector = new Phaser.Math.Vector2()
         this.game.physics.velocityFromRotation(angle, this.speed, velocityVector)
         this.setVelocity(velocityVector.x, velocityVector.y)
@@ -234,9 +254,49 @@ export class Fish {
     }
   }
 
+  getBestAngleAwayFromPlayerFish(fish: Fish, moveTarget: { x: number; y: number }) {
+    const angleToGoal = Phaser.Math.Angle.BetweenPoints(
+      {
+        x: this.sprite.x,
+        y: this.sprite.y,
+      },
+      {
+        x: moveTarget.x,
+        y: moveTarget.y,
+      }
+    )
+    let resultAngle = angleToGoal
+    let minDiff = Number.MAX_SAFE_INTEGER
+    const angles: number[] = []
+    for (let i = -30; i <= 30; i += 15) {
+      angles.push(Phaser.Math.DegToRad(i))
+    }
+    for (let i = 120; i <= 180; i += 15) {
+      angles.push(Phaser.Math.DegToRad(i))
+    }
+    angles.forEach((diff) => {
+      const line = new Phaser.Geom.Line()
+      const newAngle = angleToGoal + diff
+      Phaser.Geom.Line.SetToAngle(line, this.sprite.x, this.sprite.y, newAngle, Constants.BG_WIDTH)
+      if (!Phaser.Geom.Intersects.LineToRectangle(line, fish.markerRectangle) && diff < minDiff) {
+        minDiff = diff
+        resultAngle = newAngle
+      }
+    })
+    return resultAngle
+  }
+
   setFlipX(flipX: boolean) {
     this.flipX = flipX
     this.sprite.flipX = flipX
+  }
+
+  kickBallAtAngle(ball: Ball, angle: number, speedMultiplier: number = 2) {
+    this.ballCollider.active = false
+    ball.shoot(angle, speedMultiplier)
+    this.game.time.delayedCall(500, () => {
+      this.ballCollider.active = true
+    })
   }
 
   kickBall(

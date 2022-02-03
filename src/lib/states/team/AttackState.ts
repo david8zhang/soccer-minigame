@@ -70,19 +70,48 @@ export class AttackState extends State {
     return distanceToClosestFish < Constants.PASS_DISTANCE
   }
 
-  shouldShoot(fish: Fish, team: Team) {
-    const currPosition = {
-      x: fish.sprite.x,
-      y: fish.sprite.y,
+  isBlockedByEnemy(line: Phaser.Geom.Line, team: Team) {
+    const enemyTeam = team.getEnemyTeam()
+    const enemyPlayers = [...enemyTeam.fieldPlayers, enemyTeam.goalKeeper.fish]
+    for (let i = 0; i < enemyPlayers.length; i++) {
+      const player = enemyPlayers[i]
+      if (Phaser.Geom.Intersects.LineToRectangle(line, player.markerRectangle)) {
+        return true
+      }
     }
+    return false
+  }
+
+  // Try different angles to score a goal
+  getGoalShotAngle(fish: Fish, team: Team) {
+    const enemyGoal = team.getEnemyGoal()
+    let goalStartY = enemyGoal.sprite.y - 100
+    let goalEndY = enemyGoal.sprite.y + 100
+    const fishPosition = { x: fish.sprite.x, y: fish.sprite.y }
+    const eligibleAngles: number[] = []
+    for (let y = goalStartY; y <= goalEndY; y += 20) {
+      const ray = new Phaser.Geom.Line()
+      const distanceToGoal = Constants.getDistanceBetweenObjects(fish.sprite, enemyGoal.sprite)
+      const angle = Phaser.Math.Angle.BetweenPoints(fishPosition, {
+        x: enemyGoal.sprite.x,
+        y,
+      })
+      Phaser.Geom.Line.SetToAngle(ray, fish.sprite.x, fish.sprite.y, angle, distanceToGoal)
+      if (!this.isBlockedByEnemy(ray, team)) {
+        eligibleAngles.push(angle)
+      }
+    }
+    console.log(eligibleAngles)
+    const randomElement = eligibleAngles[Math.floor(Math.random() * eligibleAngles.length)]
+    return eligibleAngles.length > 0 ? randomElement : -1
+  }
+
+  shouldShoot(fish: Fish, team: Team) {
     const distanceToEnemyGoal = Constants.getDistanceBetweenObjects(
       fish.sprite,
       team.getEnemyGoal().sprite
     )
-    return (
-      BestSpotUtil.canScoreGoal(currPosition, team.getEnemyTeam()) &&
-      distanceToEnemyGoal < Constants.CPU_WILL_SHOOT_DISTANCE
-    )
+    return distanceToEnemyGoal < Constants.CPU_WILL_SHOOT_DISTANCE
   }
 
   assignFishOffensiveState(fish: Fish, team: Team) {
@@ -92,7 +121,12 @@ export class AttackState extends State {
     const ball = team.getBall()
     if (fish.hasBall(ball)) {
       if (this.shouldShoot(fish, team)) {
-        fish.kickBall(ball, team.getEnemyGoal(), Constants.SHOOT_SPEED_MULTIPLIER)
+        const goalShotAngle = this.getGoalShotAngle(fish, team)
+        if (goalShotAngle === -1) {
+          fish.kickBall(ball, team.getEnemyGoal(), Constants.SHOOT_SPEED_MULTIPLIER)
+        } else {
+          fish.kickBallAtAngle(ball, goalShotAngle, Constants.SHOOT_SPEED_MULTIPLIER)
+        }
         return
       }
       if (this.shouldPass(fish, team) && this.isPassSafe(fish, team)) {
