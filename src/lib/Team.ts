@@ -66,10 +66,11 @@ export abstract class Team {
     numFieldPlayers: number,
     playerTexture: string,
     side: Side,
-    startingPositions?: number[]
+    startingPositions?: number[],
+    speed?: number
   ): Fish[] {
     const players: Fish[] = []
-    const positions = startingPositions || Constants.PLAYER_KICKOFF_POSITIONS
+    const positions = startingPositions || Constants.PLAYER_DEFENSE_KICKOFF_POSITIONS
     for (let i = 0; i < numFieldPlayers; i++) {
       const zoneId = positions[i]
       if (zoneId) {
@@ -86,6 +87,9 @@ export abstract class Team {
             },
             this.game
           )
+          if (speed) {
+            fish.setSpeed(speed)
+          }
           fish.setHomeRegionId(zoneId)
           players.push(fish)
         }
@@ -94,7 +98,7 @@ export abstract class Team {
     return players
   }
 
-  public abstract reset(): void
+  public abstract reset(isOffense: boolean): void
 
   public setState(state: TeamStates) {
     this.stateMachine.transition(state)

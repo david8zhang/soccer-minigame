@@ -25,14 +25,18 @@ export class Constants {
 
   // Team attributes
   static NUM_FIELD_PLAYERS_PER_TEAM = 2
-  static CPU_KICKOFF_POSITIONS = [13, 29]
   static CPU_ATTACK_POSITIONS = [10, 21]
   static CPU_DEFEND_POSITIONS = [14, 30]
   static CPU_GOALKEEPER_POSITION = 23
   static PLAYER_GOALKEEPER_POSITION = 16
-  static PLAYER_KICKOFF_POSITIONS = [10, 26]
   static PLAYER_ATTACK_POSITIONS = [13, 18]
   static PLAYER_DEFEND_POSITIONS = [9, 25]
+
+  static PLAYER_DEFENSE_KICKOFF_POSITIONS = [10, 26]
+  static PLAYER_OFFENSE_KICKOFF_POSITIONS = [11, 27]
+
+  static CPU_DEFENSE_KICKOFF_POSITIONS = [13, 29]
+  static CPU_OFFENSE_KICKOFF_POSITIONS = [12, 28]
 
   static getDistanceBetweenObjects(obj1: Object, obj2: Object) {
     const pos1 = { x: obj1.x, y: obj1.y }

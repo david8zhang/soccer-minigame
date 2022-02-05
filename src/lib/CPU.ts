@@ -2,6 +2,7 @@ import Game, { Side } from '~/scenes/Game'
 import { BestSpotUtil } from '~/utils/BestSpotUtil'
 import { Constants } from '~/utils/Constants'
 import { Fish } from './Fish'
+import { TeamStates } from './states/StateTypes'
 import { Team } from './Team'
 
 export class CPU extends Team {
@@ -16,7 +17,8 @@ export class CPU extends Team {
       Constants.NUM_FIELD_PLAYERS_PER_TEAM,
       'fish2',
       this.side,
-      Constants.CPU_KICKOFF_POSITIONS
+      Constants.CPU_DEFENSE_KICKOFF_POSITIONS,
+      Constants.FISH_SPEED * 1.25
     )
     this.goalKeeper = this.createGoalKeeper(Constants.CPU_GOALKEEPER_POSITION, 'fish2', this.side)
   }
@@ -34,8 +36,11 @@ export class CPU extends Team {
     return this.game.cpuGoal
   }
 
-  reset() {
-    super.resetFieldPlayers(Constants.CPU_KICKOFF_POSITIONS)
+  reset(isOffense: boolean) {
+    this.stateMachine.transition(TeamStates.KICKOFF)
+    super.resetFieldPlayers(
+      isOffense ? Constants.CPU_OFFENSE_KICKOFF_POSITIONS : Constants.CPU_DEFENSE_KICKOFF_POSITIONS
+    )
     this.fieldPlayers.forEach((player) => player.setFlipX(true))
   }
 

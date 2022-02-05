@@ -19,7 +19,8 @@ export class Player extends Team {
       Constants.NUM_FIELD_PLAYERS_PER_TEAM,
       'fish4',
       this.side,
-      Constants.PLAYER_KICKOFF_POSITIONS
+      Constants.PLAYER_DEFENSE_KICKOFF_POSITIONS,
+      Constants.FISH_SPEED
     )
     this.goalKeeper = this.createGoalKeeper(
       Constants.PLAYER_GOALKEEPER_POSITION,
@@ -64,8 +65,6 @@ export class Player extends Team {
     return this.game.cpu
   }
 
-  getScoreForPosition(position: { x: number; y: number }) {}
-
   switchPlayer() {
     const selectedFish = this.getSelectedFish()
     if (selectedFish) {
@@ -109,9 +108,13 @@ export class Player extends Team {
     }
   }
 
-  public reset(): void {
+  public reset(isOffense: boolean): void {
     this.stateMachine.transition(TeamStates.KICKOFF)
-    super.resetFieldPlayers(Constants.PLAYER_KICKOFF_POSITIONS)
+    super.resetFieldPlayers(
+      isOffense
+        ? Constants.PLAYER_OFFENSE_KICKOFF_POSITIONS
+        : Constants.PLAYER_DEFENSE_KICKOFF_POSITIONS
+    )
     this.selectFish(this.fieldPlayers[0])
   }
 

@@ -6,7 +6,7 @@ export class KickoffState extends State {
   enter(team: Team) {
     team.fieldPlayers.forEach((player) => {
       if (player.getCurrentState() !== PlayerStates.PLAYER_CONTROL) {
-        player.setState(PlayerStates.WAIT)
+        player.setState(PlayerStates.CHASE_BALL_STATE)
       }
     })
   }

@@ -117,15 +117,19 @@ export default class Game extends Phaser.Scene {
     this.ball = new Ball({ x: ballXPos, y: ballYPos }, this)
   }
 
-  reset() {
+  reset(sideScoredOn: Side) {
     this.ball.reset()
-    this.cpu.reset()
-    this.player.reset()
+    this.cpu.reset(sideScoredOn === Side.COMPUTER)
+    this.player.reset(sideScoredOn === Side.PLAYER)
   }
 
   createGoal() {
-    this.playerGoal = new Goal({ x: 50, y: Constants.BG_HEIGHT / 2 }, this)
-    this.cpuGoal = new Goal({ x: Constants.BG_WIDTH - 50, y: Constants.BG_HEIGHT / 2 }, this)
+    this.playerGoal = new Goal({ x: 50, y: Constants.BG_HEIGHT / 2 }, this, Side.PLAYER)
+    this.cpuGoal = new Goal(
+      { x: Constants.BG_WIDTH - 50, y: Constants.BG_HEIGHT / 2 },
+      this,
+      Side.COMPUTER
+    )
   }
 
   getPlayerSelectedFish(): Fish | undefined {

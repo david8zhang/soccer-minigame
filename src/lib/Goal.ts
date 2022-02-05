@@ -1,11 +1,12 @@
-import Game from '~/scenes/Game'
+import Game, { Side } from '~/scenes/Game'
 
 export class Goal {
   private game: Game
   public sprite: Phaser.Physics.Arcade.Sprite
   public ballCollider: Phaser.Physics.Arcade.Collider
+  public side: Side
 
-  constructor(position: { x: number; y: number }, game: Game) {
+  constructor(position: { x: number; y: number }, game: Game, side: Side) {
     this.game = game
     const { x, y } = position
     this.sprite = this.game.physics.add.sprite(x, y, 'goal').setScale(2)
@@ -14,12 +15,12 @@ export class Goal {
     this.ballCollider = this.game.physics.add.overlap(this.sprite, this.game.ball.sprite, () => {
       this.onScore()
     })
+    this.side = side
   }
 
   onScore() {
     if (this.checkIfBallIsFullyInsideGoal()) {
-      console.log('Should reset!')
-      this.game.reset()
+      this.game.reset(this.side)
     }
   }
 

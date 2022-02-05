@@ -244,7 +244,6 @@ export class Fish {
         // Avoid enemy if there is one in the vicinity
         const blockingEnemyFish = this.getBlockingEnemyFish(angle)
         if (blockingEnemyFish) {
-          console.log(angle)
           angle = this.getBestAngleAwayFromPlayerFish(blockingEnemyFish, this.moveTarget)
         }
         const velocityVector = new Phaser.Math.Vector2()
