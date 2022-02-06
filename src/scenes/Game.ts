@@ -6,7 +6,10 @@ import { Goal } from '~/lib/Goal'
 import { Debug } from '~/lib/Debug'
 import { CPU } from '~/lib/CPU'
 import { Player } from '~/lib/Player'
-import { Score } from '~/lib/Score'
+import { Score } from '~/lib/ui/ScoreBoard'
+import { createSplashAnims } from '~/lib/anims/splashAnims'
+import { OnScoredText } from '~/lib/ui/OnScoredText'
+import { MatchClock } from '~/lib/ui/MatchClock'
 
 export enum Side {
   PLAYER,
@@ -35,16 +38,18 @@ export default class Game extends Phaser.Scene {
 
   // Other
   public debug!: Debug
-
   public score!: Score
+  public onScoredText!: OnScoredText
+  public matchClock!: MatchClock
 
   constructor() {
     super('game')
   }
 
   create() {
+    createSplashAnims(this.anims)
     this.initWorldCollider()
-    this.initScore()
+    this.initUI()
     this.createField()
     this.createBall()
     this.createGoal()
@@ -65,8 +70,22 @@ export default class Game extends Phaser.Scene {
     )
   }
 
-  initScore() {
+  initUI() {
     this.score = new Score(this)
+    this.onScoredText = new OnScoredText(this)
+    this.matchClock = new MatchClock(this)
+    this.matchClock.onMatchFinished = () => {
+      this.endGame()
+    }
+  }
+
+  endGame() {
+    this.scene.start('gameover', {
+      score: {
+        player: this.score.playerScore,
+        cpu: this.score.cpuScore,
+      },
+    })
   }
 
   initializeDebug() {
@@ -126,15 +145,16 @@ export default class Game extends Phaser.Scene {
   }
 
   reset(sideScoredOn: Side) {
+    this.onScoredText.setVisible(false)
     if (sideScoredOn === Side.PLAYER) {
       this.score.incrementCPUScore()
     } else {
       this.score.incrementPlayerScore()
     }
-
     this.ball.reset()
     this.cpu.reset(sideScoredOn === Side.COMPUTER)
     this.player.reset(sideScoredOn === Side.PLAYER)
+    this.scene.resume()
   }
 
   createGoal() {

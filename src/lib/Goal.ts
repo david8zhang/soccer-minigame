@@ -5,6 +5,8 @@ export class Goal {
   public sprite: Phaser.Physics.Arcade.Sprite
   public ballCollider: Phaser.Physics.Arcade.Collider
   public side: Side
+  public splashEffectSprite!: Phaser.Physics.Arcade.Sprite
+  public hasScored: boolean = false
 
   constructor(position: { x: number; y: number }, game: Game, side: Side) {
     this.game = game
@@ -16,11 +18,33 @@ export class Goal {
       this.onScore()
     })
     this.side = side
+    this.setupSplashEffect()
+  }
+
+  setupSplashEffect() {
+    const angle = this.side === Side.PLAYER ? 90 : 270
+    const xPos = this.side === Side.PLAYER ? this.sprite.x + 50 : this.sprite.x - 50
+    this.splashEffectSprite = this.game.physics.add
+      .sprite(xPos, this.sprite.y, 'splash')
+      .setAngle(angle)
+      .setScale(2)
   }
 
   onScore() {
-    if (this.checkIfBallIsFullyInsideGoal()) {
-      this.game.reset(this.side)
+    if (this.checkIfBallIsFullyInsideGoal() && !this.hasScored) {
+      this.hasScored = true
+      this.game.ball.sprite.setVisible(false)
+      this.game.cameras.main.shake(50, 0.005)
+      this.splashEffectSprite.play('goal-score')
+      this.game.time.delayedCall(700, () => {
+        this.game.onScoredText.setVisible(true)
+        this.game.scene.pause()
+        const timeout = setTimeout(() => {
+          this.game.reset(this.side)
+          this.hasScored = false
+          clearTimeout(timeout)
+        }, 1000)
+      })
     }
   }
 

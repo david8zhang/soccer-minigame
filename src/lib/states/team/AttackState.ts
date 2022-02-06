@@ -101,7 +101,6 @@ export class AttackState extends State {
         eligibleAngles.push(angle)
       }
     }
-    console.log(eligibleAngles)
     const randomElement = eligibleAngles[Math.floor(Math.random() * eligibleAngles.length)]
     return eligibleAngles.length > 0 ? randomElement : -1
   }
