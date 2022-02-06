@@ -6,7 +6,7 @@ import { Goal } from '~/lib/Goal'
 import { Debug } from '~/lib/Debug'
 import { CPU } from '~/lib/CPU'
 import { Player } from '~/lib/Player'
-import { TeamStates } from '~/lib/states/StateTypes'
+import { Score } from '~/lib/Score'
 
 export enum Side {
   PLAYER,
@@ -36,12 +36,15 @@ export default class Game extends Phaser.Scene {
   // Other
   public debug!: Debug
 
+  public score!: Score
+
   constructor() {
     super('game')
   }
 
   create() {
     this.initWorldCollider()
+    this.initScore()
     this.createField()
     this.createBall()
     this.createGoal()
@@ -62,8 +65,13 @@ export default class Game extends Phaser.Scene {
     )
   }
 
+  initScore() {
+    this.score = new Score(this)
+  }
+
   initializeDebug() {
     this.debug = new Debug(this)
+    this.debug.setVisible(false)
   }
 
   createField() {
@@ -118,6 +126,12 @@ export default class Game extends Phaser.Scene {
   }
 
   reset(sideScoredOn: Side) {
+    if (sideScoredOn === Side.PLAYER) {
+      this.score.incrementCPUScore()
+    } else {
+      this.score.incrementPlayerScore()
+    }
+
     this.ball.reset()
     this.cpu.reset(sideScoredOn === Side.COMPUTER)
     this.player.reset(sideScoredOn === Side.PLAYER)
