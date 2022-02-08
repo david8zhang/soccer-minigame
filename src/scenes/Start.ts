@@ -13,9 +13,12 @@ export class Start extends Scene {
     const text = this.add.text(0, 0, 'Sakana Soccer').setDepth(200)
     text.setStyle({
       fontSize: 75,
+      color: 'black',
+      fontFamily: 'Oceania',
     })
     text.setPosition(gameWidth / 2 - text.width / 2, 200)
-    const bg = this.add.image(gameWidth / 2, gameHeight / 2, 'start-screen')
+    const bg = this.add.image(gameWidth / 2, gameHeight / 2, 'bg').setAlpha(0.75)
+    this.cameras.main.setBackgroundColor(0xffffff)
     const scaleX = gameWidth / bg.width
     const scaleY = gameHeight / bg.height
     bg.setScale(scaleX, scaleY)
